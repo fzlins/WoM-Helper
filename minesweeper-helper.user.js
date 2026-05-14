@@ -4,6 +4,7 @@
 // @version      1.1
 // @description  Converts WxH/M board-size text into clickable links, appends mine density, and adds NF (No-Flag) toggle on game pages
 // @author
+// @icon         https://minesweeper.online/favicon.ico
 // @match        https://minesweeper.online/*
 // @grant        none
 // ==/UserScript==
