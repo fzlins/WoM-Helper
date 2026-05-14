@@ -2,7 +2,7 @@
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
 // @version      1.1
-// @description  Converts WxH/M board-size text into clickable links, appends mine density, and adds NF (No-Flag) toggle on game pages
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, and adds a No-Flag toggle to disable right-click flagging on minesweeper.online
 // @author
 // @icon         https://minesweeper.online/favicon.ico
 // @match        https://minesweeper.online/*
