@@ -1,5 +1,7 @@
 # WoM Helper
 
+[English](./README.md) [简体中文](./docs/README.zh-CN.md) [日本語](./docs/README.ja.md) [Русский](./docs/README.ru.md) [DeepWiki](https://deepwiki.com/fzlins/WoM-Helper)
+
 A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display and adds a No-Flag mode.
 
 ## Features
@@ -11,6 +13,12 @@ A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) 
 - **Dynamic content** — Uses a `MutationObserver` to handle content loaded after the initial page render.
 
 ## Installation
+
+**Option A — Greasy Fork (recommended)**
+
+Install directly from [Greasy Fork](https://greasyfork.org/scripts/578042-minesweeper-online-helper).
+
+**Option B — Manual**
 
 1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension.
 2. Open the Tampermonkey dashboard and click **Create a new script**.
