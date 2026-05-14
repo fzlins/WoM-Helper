@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, and adds a No-Flag toggle to disable right-click flagging on minesweeper.online
 // @author
 // @license      MIT
@@ -297,12 +297,152 @@
 
     // ──────────────────────────────────────────────────────────────────────
 
+    // ── Event stats columns — /events pages only ──────────────────────────
+
+    function initEventStats() {
+        const COL_CLASS = 'ms-evt-col';
+
+        /**
+         * Returns the UTC start/end timestamps of the active event.
+         * Events run from the 4th of a month at 00:00 UTC through the end of
+         * that same month.  Before the 4th, the previous month's event is used.
+         */
+        function getEventPeriod() {
+            const now = new Date();
+            let y = now.getUTCFullYear();
+            let m = now.getUTCMonth(); // 0-based
+            if (now.getUTCDate() < 4) {
+                m -= 1;
+                if (m < 0) { m = 11; y -= 1; }
+            }
+            const start = Date.UTC(y, m, 4);       // 4th 00:00 UTC
+            const end   = Date.UTC(y, m + 1, 1);   // first of next month
+            return { start, end };
+        }
+
+        /**
+         * Given a player's current point total, returns:
+         *   avgH — rounded average points per hour since event start
+         *   avgD — rounded average points per day since event start
+         *   est  — rounded projected total at event end
+         * Returns null if the event hasn't started yet.
+         */
+        function calcStats(points) {
+            const { start, end } = getEventPeriod();
+            const now = Date.now();
+            if (now < start) return null;
+            const elapsedMs = Math.max(now - start, 60000); // avoid div-by-zero
+            const totalMs   = end - start;
+            const avgPerDay = points / (elapsedMs / 86400000);
+            const est = now >= end ? points : avgPerDay * (totalMs / 86400000);
+            return {
+                avgD: Math.round(avgPerDay),
+                est:  Math.round(est),
+            };
+        }
+
+        /** Appends a single 🎯 header <th> to the thead row (idempotent). */
+        function ensureHeaders(thead) {
+            const row = thead.querySelector('tr');
+            if (!row || row.querySelector('th[data-ms-evt]')) return;
+            const th = document.createElement('th');
+            th.setAttribute('data-ms-evt', '1');
+            th.textContent = '🎯';
+            row.appendChild(th);
+        }
+
+        /**
+         * Adds a <td> to every tbody row with the projected total in a Bootstrap
+         * tooltip span: <span class="help" data-original-title="{avg/d}">
+         * <strong>EST</strong><img></span>.
+         * Stale cells are removed before re-adding.
+         * childList-only observer (no subtree) ensures our <td> additions inside
+         * rows do not re-trigger the pagination observer.
+         */
+        function fillBodyCols(tbody) {
+            for (const row of tbody.querySelectorAll('tr')) {
+                row.querySelectorAll('.' + COL_CLASS).forEach(el => el.remove());
+                const strong = row.querySelector('strong[class*="event-pos"]');
+                if (!strong) continue;
+
+                const points = parseInt(strong.textContent.replace(/,/g, ''), 10);
+                const stats  = isNaN(points) ? null : calcStats(points);
+                // Clone the event icon from the existing points cell (varies per event)
+                const icon = strong.closest('td')?.querySelector('img') ?? null;
+
+                const td = document.createElement('td');
+                td.className = COL_CLASS + ' text-nowrap narrow-td';
+
+                if (stats) {
+                    // Tooltip shows avg/h and avg/d; span content is projected total.
+                    // Bootstrap 3 tooltip pattern used by the site: title="" +
+                    // data-original-title carries the visible tooltip text.
+                    const tip = `${stats.avgD.toLocaleString()}/d`;
+                    const span = document.createElement('span');
+                    span.className = 'help';
+                    span.setAttribute('data-original-title', tip);
+
+                    const s = document.createElement('strong');
+                    s.textContent = stats.est.toLocaleString();
+                    span.appendChild(s);
+                    if (icon) span.appendChild(icon.cloneNode(true));
+
+                    td.appendChild(span);
+                } else {
+                    td.textContent = '\u2013';
+                }
+
+                row.appendChild(td);
+
+                // Directly initialize Bootstrap 3 tooltip — the site's delegated
+                // .help tooltip may not cover dynamically inserted elements.
+                if (stats && window.jQuery && window.jQuery.fn.tooltip) {
+                    window.jQuery(td.querySelector('span.help')).tooltip({ container: 'body' });
+                }
+            }
+        }
+
+        function setupTable() {
+            const table = document.getElementById('stat_table');
+            if (!table) return false;
+            const thead = table.querySelector('#stat_table_head');
+            const tbody = table.querySelector('#stat_table_body');
+            if (!thead || !tbody) return false;
+
+            ensureHeaders(thead);
+            fillBodyCols(tbody);
+
+            // childList-only (no subtree) — fires when rows are added/removed
+            // by pagination, but NOT when we add <td> cells inside rows.
+            new MutationObserver(() => {
+                ensureHeaders(thead);
+                fillBodyCols(tbody);
+            }).observe(tbody, { childList: true });
+
+            return true;
+        }
+
+        if (!setupTable()) {
+            const obs = new MutationObserver(() => {
+                if (setupTable()) obs.disconnect();
+            });
+            obs.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+
     function init() {
         walk(document.body);
 
         // Initialize NF toggle on game pages
         if (/\/game(\/|$)/.test(location.pathname)) {
             initNF();
+        }
+
+        // Initialize event stats columns on events pages
+        if (/\/events(\/|$|\?)/.test(location.pathname)) {
+            initEventStats();
         }
 
         // Watch for dynamically loaded content
