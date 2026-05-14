@@ -15,34 +15,25 @@
 (function () {
     'use strict';
 
-    // Matches WxH/M patterns, e.g. 58x35/393
-    const BOARD_RE = /(\d+)x(\d+)\/(\d+)/g;
-    // Attribute used to mark already-processed nodes and avoid duplicate work
+    // WxH/M board-size pattern, e.g. 58x35/393
+    const BOARD_RE = /(\d+)x(\d+)\/(\d+)/;
+    // Marks nodes that have already been processed to prevent duplicate work
     const PROCESSED = 'data-ms-done';
 
-    /**
-     * Extracts the language prefix from the current page URL.
-     * e.g. /cn/quests → /cn, /quests → ''
-     */
+    // ── Board links & density ──────────────────────────────────────────────
+
+    /** Returns the two-letter language prefix from the URL, e.g. '/cn', or ''. */
     function getLangPrefix() {
-        const m = /^(\/[a-z]{2,})(\/|$)/.exec(location.pathname);
-        // Only accept two-letter language codes; exclude functional paths like /start
-        if (m && /^\/[a-z]{2}$/.test(m[1])) {
-            return m[1];
-        }
-        return '';
+        const m = /^(\/[a-z]{2})(\/|$)/.exec(location.pathname);
+        return m ? m[1] : '';
     }
 
-    /**
-     * Returns a formatted mine density string: mines / (w * h) * 100%
-     */
+    /** Returns a mine-density string, e.g. '(20.50%)'. */
     function densityText(w, h, mines) {
         return `(${((mines / (w * h)) * 100).toFixed(2)}%)`;
     }
 
-    /**
-     * Creates an <a> element linking to the specified board configuration.
-     */
+    /** Creates an <a> linking to the given board configuration. */
     function makeLink(w, h, mines) {
         const a = document.createElement('a');
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
@@ -51,9 +42,7 @@
         return a;
     }
 
-    /**
-     * Creates a <span> element displaying the mine density.
-     */
+    /** Creates a <span> displaying the mine density. */
     function makeDensitySpan(w, h, mines) {
         const s = document.createElement('span');
         s.className = 'ms-density';
@@ -62,83 +51,55 @@
         return s;
     }
 
-    /**
-     * Processes a plain text node: replaces every WxH/M occurrence
-     * with a clickable link followed by a density span.
-     */
+    /** Replaces each WxH/M occurrence in a text node with a link + density span. */
     function processTextNode(node) {
         const parent = node.parentNode;
         if (!parent) return;
 
         const text = node.textContent;
-        BOARD_RE.lastIndex = 0;
-
-        const matches = [];
-        let m;
-        while ((m = BOARD_RE.exec(text)) !== null) {
-            matches.push({
-                index: m.index,
-                len: m[0].length,
-                w: m[1],
-                h: m[2],
-                mines: m[3],
-            });
-        }
+        const matches = [...text.matchAll(/(\d+)x(\d+)\/(\d+)/g)];
         if (!matches.length) return;
 
         const frag = document.createDocumentFragment();
         let pos = 0;
-        for (const { index, len, w, h, mines } of matches) {
-            if (index > pos) {
-                frag.appendChild(document.createTextNode(text.slice(pos, index)));
-            }
+        for (const m of matches) {
+            const [full, w, h, mines] = m;
+            if (m.index > pos) frag.appendChild(document.createTextNode(text.slice(pos, m.index)));
             frag.appendChild(makeLink(w, h, mines));
             frag.appendChild(makeDensitySpan(w, h, mines));
-            pos = index + len;
+            pos = m.index + full.length;
         }
-        if (pos < text.length) {
-            frag.appendChild(document.createTextNode(text.slice(pos)));
-        }
+        if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
         parent.replaceChild(frag, node);
     }
 
     /**
-     * Processes an existing <a> element: corrects its href to include the
-     * current language prefix and inserts a density span after it.
+     * Corrects the href of an existing board-link <a> to use the current
+     * language prefix, and appends a density span if not already present.
      */
     function processAnchor(a) {
         if (a.getAttribute(PROCESSED)) return;
 
-        const text = a.textContent.trim();
-        BOARD_RE.lastIndex = 0;
-        const m = BOARD_RE.exec(text);
+        const m = BOARD_RE.exec(a.textContent.trim());
         if (!m) return;
 
         const [, w, h, mines] = m;
-
-        // Rewrite href to match the current page language
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
         a.setAttribute(PROCESSED, '1');
 
-        // Only insert a density span if one is not already present immediately after
         const next = a.nextSibling;
         const alreadyHasDensity =
-            next &&
-            next.nodeType === Node.ELEMENT_NODE &&
-            next.classList.contains('ms-density');
+            next?.nodeType === Node.ELEMENT_NODE && next.classList.contains('ms-density');
         if (!alreadyHasDensity && a.parentNode) {
             a.parentNode.insertBefore(makeDensitySpan(w, h, mines), next);
         }
     }
 
-    /**
-     * Recursively walks the DOM, processing text nodes and <a> elements.
-     */
+    /** Recursively walks the DOM, processing board-size text nodes and links. */
     function walk(node) {
         if (!node) return;
 
         if (node.nodeType === Node.TEXT_NODE) {
-            BOARD_RE.lastIndex = 0;
             if (BOARD_RE.test(node.textContent)) processTextNode(node);
             return;
         }
@@ -146,30 +107,25 @@
         if (node.nodeType !== Node.ELEMENT_NODE) return;
 
         const tag = node.tagName;
-        // Skip script and style elements
-        if (tag === 'SCRIPT' || tag === 'STYLE') return;
-        // Skip already-processed elements (including their subtrees)
-        if (node.getAttribute(PROCESSED)) return;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || node.getAttribute(PROCESSED)) return;
 
         if (tag === 'A') {
-            BOARD_RE.lastIndex = 0;
             if (BOARD_RE.test(node.textContent)) processAnchor(node);
-            // Do not recurse into the anchor's child text nodes
             return;
         }
 
-        // Snapshot child nodes before iterating to avoid issues caused by DOM mutations
+        // Snapshot before iterating to guard against DOM mutations during traversal
         Array.from(node.childNodes).forEach(walk);
     }
 
-    // ── NF (No-Flag) toggle — game pages only ─────────────────────────────
+    // ── No-Flag toggle ─────────────────────────────────────────────────────
 
     const NF_KEY = 'ms-nf-enabled';
 
     /**
-     * Blocks right-click input on the game board.
-     * The game uses mousedown/mouseup (button 2) for flagging — not contextmenu —
-     * so all three event types must be intercepted in the capture phase.
+     * Blocks right-click events on #game in the capture phase.
+     * The game flags on mousedown/mouseup (button 2), not contextmenu alone,
+     * so all three event types are intercepted.
      */
     function blockRightClick(e) {
         if (e.button === 2 || e.type === 'contextmenu') {
@@ -179,32 +135,29 @@
     }
 
     /**
-     * Attaches or detaches right-click blockers on #game.
+     * Attaches or detaches right-click blocking on #game.
      * Returns true if #game was found.
      */
     function applyNF(enabled) {
         const game = document.getElementById('game');
         if (!game) return false;
-        const m = enabled ? 'addEventListener' : 'removeEventListener';
-        ['contextmenu', 'mousedown', 'mouseup'].forEach(evt => {
-            game[m](evt, blockRightClick, true);
-        });
+        const method = enabled ? 'addEventListener' : 'removeEventListener';
+        for (const evt of ['contextmenu', 'mousedown', 'mouseup']) {
+            game[method](evt, blockRightClick, true);
+        }
         return true;
     }
 
-    /**
-     * Builds a label+checkbox element. All NF checkboxes share the class
-     * 'ms-nf-chk' so they stay in sync when any one is toggled.
-     */
+    /** Creates a label+checkbox for the NF toggle. All checkboxes share 'ms-nf-chk'. */
     function makeNFCheckbox(id, labelStyle) {
         const label = document.createElement('label');
         label.htmlFor = id;
-        label.title   = 'No Flag — disable right-click flagging';
+        label.title = 'No Flag — disable right-click flagging';
         label.style.cssText = labelStyle;
 
         const chk = document.createElement('input');
-        chk.type      = 'checkbox';
-        chk.id        = id;
+        chk.type = 'checkbox';
+        chk.id = id;
         chk.className = 'ms-nf-chk';
         chk.style.cssText = 'margin-right:3px;vertical-align:middle;cursor:pointer;';
 
@@ -212,23 +165,17 @@
         span.textContent = 'NF';
         span.style.verticalAlign = 'middle';
 
-        label.appendChild(chk);
-        label.appendChild(span);
+        label.append(chk, span);
         return label;
     }
 
-    /**
-     * Injects NF checkboxes after level_select_4 (desktop + mobile compact)
-     * and restores the saved preference.
-     */
+    /** Injects NF checkboxes into the level bar and restores the saved state. */
     function initNF() {
         let nfEnabled = localStorage.getItem(NF_KEY) === '1';
 
-        function syncAll() {
-            document.querySelectorAll('.ms-nf-chk').forEach(c => {
-                c.checked = nfEnabled;
-            });
-        }
+        const syncAll = () => {
+            document.querySelectorAll('.ms-nf-chk').forEach(c => { c.checked = nfEnabled; });
+        };
 
         function onchange() {
             nfEnabled = this.checked;
@@ -237,11 +184,6 @@
             applyNF(nfEnabled);
         }
 
-        /**
-         * Inserts checkboxes after level_select_4 in both the desktop row
-         * (#levels_full) and the mobile dropdown (#levels_compact).
-         * Returns true once #levels_full is found.
-         */
         function tryInsert() {
             const levelsFull = document.getElementById('levels_full');
             if (!levelsFull) return false;
@@ -277,71 +219,56 @@
         }
 
         if (!tryInsert()) {
-            const obs = new MutationObserver(() => {
-                if (tryInsert()) obs.disconnect();
-            });
+            const obs = new MutationObserver(() => { if (tryInsert()) obs.disconnect(); });
             obs.observe(document.body, { childList: true, subtree: true });
         }
 
-        // Apply initial NF state — #game may not exist yet either
+        // Apply initial NF state — #game may not exist yet
         if (!applyNF(nfEnabled)) {
-            const obs2 = new MutationObserver(() => {
-                if (document.getElementById('game')) {
-                    applyNF(nfEnabled);
-                    obs2.disconnect();
-                }
+            const obs = new MutationObserver(() => {
+                if (document.getElementById('game')) { applyNF(nfEnabled); obs.disconnect(); }
             });
-            obs2.observe(document.body, { childList: true, subtree: true });
+            obs.observe(document.body, { childList: true, subtree: true });
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────
-
-    // ── Event stats columns — /events pages only ──────────────────────────
+    // ── Event stats ────────────────────────────────────────────────────────
 
     function initEventStats() {
         const COL_CLASS = 'ms-evt-col';
 
         /**
-         * Returns the UTC start/end timestamps of the active event.
-         * Events run from the 4th of a month at 00:00 UTC through the end of
-         * that same month.  Before the 4th, the previous month's event is used.
+         * Returns UTC start/end timestamps for the current event period.
+         * Events run from the 4th of a month through the last day of that month.
+         * If the current date is before the 4th, the previous month is used.
          */
         function getEventPeriod() {
             const now = new Date();
             let y = now.getUTCFullYear();
             let m = now.getUTCMonth(); // 0-based
             if (now.getUTCDate() < 4) {
-                m -= 1;
-                if (m < 0) { m = 11; y -= 1; }
+                if (--m < 0) { m = 11; y--; }
             }
-            const start = Date.UTC(y, m, 4);       // 4th 00:00 UTC
-            const end   = Date.UTC(y, m + 1, 1);   // first of next month
-            return { start, end };
+            return { start: Date.UTC(y, m, 4), end: Date.UTC(y, m + 1, 1) };
         }
 
         /**
-         * Given a player's current point total, returns:
-         *   avgH — rounded average points per hour since event start
-         *   avgD — rounded average points per day since event start
+         * Returns projected stats for a player with the given point total,
+         * or null if the event period has not started yet.
+         *   avgD — rounded average points per day
          *   est  — rounded projected total at event end
-         * Returns null if the event hasn't started yet.
          */
         function calcStats(points) {
             const { start, end } = getEventPeriod();
             const now = Date.now();
             if (now < start) return null;
-            const elapsedMs = Math.max(now - start, 60000); // avoid div-by-zero
-            const totalMs   = end - start;
-            const avgPerDay = points / (elapsedMs / 86400000);
-            const est = now >= end ? points : avgPerDay * (totalMs / 86400000);
-            return {
-                avgD: Math.round(avgPerDay),
-                est:  Math.round(est),
-            };
+            const elapsedMs = Math.max(now - start, 60_000); // avoid div-by-zero
+            const avgPerDay = points / (elapsedMs / 86_400_000);
+            const est = now >= end ? points : avgPerDay * ((end - start) / 86_400_000);
+            return { avgD: Math.round(avgPerDay), est: Math.round(est) };
         }
 
-        /** Appends a single 🎯 header <th> to the thead row (idempotent). */
+        /** Appends the 🎯 header column to the leaderboard thead (idempotent). */
         function ensureHeaders(thead) {
             const row = thead.querySelector('tr');
             if (!row || row.querySelector('th[data-ms-evt]')) return;
@@ -352,12 +279,9 @@
         }
 
         /**
-         * Adds a <td> to every tbody row with the projected total in a Bootstrap
-         * tooltip span: <span class="help" data-original-title="{avg/d}">
-         * <strong>EST</strong><img></span>.
-         * Stale cells are removed before re-adding.
-         * childList-only observer (no subtree) ensures our <td> additions inside
-         * rows do not re-trigger the pagination observer.
+         * Fills each leaderboard row with a projected-total cell.
+         * Stale cells are removed before re-adding to handle pagination reloads.
+         * Uses childList-only observation to avoid re-triggering on our own <td> additions.
          */
         function fillBodyCols(tbody) {
             for (const row of tbody.querySelectorAll('tr')) {
@@ -366,39 +290,33 @@
                 if (!strong) continue;
 
                 const points = parseInt(strong.textContent.replace(/,/g, ''), 10);
-                const stats  = isNaN(points) ? null : calcStats(points);
-                // Clone the event icon from the existing points cell (varies per event)
+                const stats = isNaN(points) ? null : calcStats(points);
+                // Clone the event icon from the points cell (varies per event)
                 const icon = strong.closest('td')?.querySelector('img') ?? null;
 
                 const td = document.createElement('td');
-                td.className = COL_CLASS + ' text-nowrap narrow-td';
+                td.className = `${COL_CLASS} text-nowrap narrow-td`;
 
                 if (stats) {
-                    // Tooltip shows avg/h and avg/d; span content is projected total.
-                    // Bootstrap 3 tooltip pattern used by the site: title="" +
-                    // data-original-title carries the visible tooltip text.
-                    const tip = `${stats.avgD.toLocaleString()}/d`;
                     const span = document.createElement('span');
                     span.className = 'help';
-                    span.setAttribute('data-original-title', tip);
+                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()}/d`);
 
                     const s = document.createElement('strong');
                     s.textContent = stats.est.toLocaleString();
                     span.appendChild(s);
                     if (icon) span.appendChild(icon.cloneNode(true));
-
                     td.appendChild(span);
+
+                    // Initialize Bootstrap 3 tooltip directly for dynamically inserted elements
+                    if (window.jQuery?.fn.tooltip) {
+                        window.jQuery(span).tooltip({ container: 'body' });
+                    }
                 } else {
-                    td.textContent = '\u2013';
+                    td.textContent = '–';
                 }
 
                 row.appendChild(td);
-
-                // Directly initialize Bootstrap 3 tooltip — the site's delegated
-                // .help tooltip may not cover dynamically inserted elements.
-                if (stats && window.jQuery && window.jQuery.fn.tooltip) {
-                    window.jQuery(td.querySelector('span.help')).tooltip({ container: 'body' });
-                }
             }
         }
 
@@ -412,8 +330,7 @@
             ensureHeaders(thead);
             fillBodyCols(tbody);
 
-            // childList-only (no subtree) — fires when rows are added/removed
-            // by pagination, but NOT when we add <td> cells inside rows.
+            // childList-only (no subtree) — fires on pagination, not on our own <td> inserts
             new MutationObserver(() => {
                 ensureHeaders(thead);
                 fillBodyCols(tbody);
@@ -423,33 +340,21 @@
         }
 
         if (!setupTable()) {
-            const obs = new MutationObserver(() => {
-                if (setupTable()) obs.disconnect();
-            });
+            const obs = new MutationObserver(() => { if (setupTable()) obs.disconnect(); });
             obs.observe(document.body, { childList: true, subtree: true });
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────
+    // ── Entry point ────────────────────────────────────────────────────────
 
     function init() {
         walk(document.body);
 
-        // Initialize NF toggle on game pages
-        if (/\/game(\/|$)/.test(location.pathname)) {
-            initNF();
-        }
+        if (/\/game(\/|$)/.test(location.pathname)) initNF();
+        if (/\/events(\/|$|\?)/.test(location.pathname)) initEventStats();
 
-        // Initialize event stats columns on events pages
-        if (/\/events(\/|$|\?)/.test(location.pathname)) {
-            initEventStats();
-        }
-
-        // Watch for dynamically loaded content
-        new MutationObserver((mutations) => {
-            for (const { addedNodes } of mutations) {
-                addedNodes.forEach(walk);
-            }
+        new MutationObserver(mutations => {
+            for (const { addedNodes } of mutations) addedNodes.forEach(walk);
         }).observe(document.body, { childList: true, subtree: true });
     }
 
