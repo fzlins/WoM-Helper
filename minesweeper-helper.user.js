@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Converts WxH/M board-size text into clickable links and appends mine density percentage
+// @version      1.1
+// @description  Converts WxH/M board-size text into clickable links, appends mine density, and adds NF (No-Flag) toggle on game pages
 // @author
 // @match        https://minesweeper.online/*
 // @grant        none
@@ -158,8 +158,148 @@
         Array.from(node.childNodes).forEach(walk);
     }
 
+    // ── NF (No-Flag) toggle — game pages only ─────────────────────────────
+
+    const NF_KEY = 'ms-nf-enabled';
+
+    /**
+     * Blocks right-click input on the game board.
+     * The game uses mousedown/mouseup (button 2) for flagging — not contextmenu —
+     * so all three event types must be intercepted in the capture phase.
+     */
+    function blockRightClick(e) {
+        if (e.button === 2 || e.type === 'contextmenu') {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    /**
+     * Attaches or detaches right-click blockers on #game.
+     * Returns true if #game was found.
+     */
+    function applyNF(enabled) {
+        const game = document.getElementById('game');
+        if (!game) return false;
+        const m = enabled ? 'addEventListener' : 'removeEventListener';
+        ['contextmenu', 'mousedown', 'mouseup'].forEach(evt => {
+            game[m](evt, blockRightClick, true);
+        });
+        return true;
+    }
+
+    /**
+     * Builds a label+checkbox element. All NF checkboxes share the class
+     * 'ms-nf-chk' so they stay in sync when any one is toggled.
+     */
+    function makeNFCheckbox(id, labelStyle) {
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.title   = 'No Flag — disable right-click flagging';
+        label.style.cssText = labelStyle;
+
+        const chk = document.createElement('input');
+        chk.type      = 'checkbox';
+        chk.id        = id;
+        chk.className = 'ms-nf-chk';
+        chk.style.cssText = 'margin-right:3px;vertical-align:middle;cursor:pointer;';
+
+        const span = document.createElement('span');
+        span.textContent = 'NF';
+        span.style.verticalAlign = 'middle';
+
+        label.appendChild(chk);
+        label.appendChild(span);
+        return label;
+    }
+
+    /**
+     * Injects NF checkboxes after level_select_4 (desktop + mobile compact)
+     * and restores the saved preference.
+     */
+    function initNF() {
+        let nfEnabled = localStorage.getItem(NF_KEY) === '1';
+
+        function syncAll() {
+            document.querySelectorAll('.ms-nf-chk').forEach(c => {
+                c.checked = nfEnabled;
+            });
+        }
+
+        function onchange() {
+            nfEnabled = this.checked;
+            syncAll();
+            localStorage.setItem(NF_KEY, nfEnabled ? '1' : '0');
+            applyNF(nfEnabled);
+        }
+
+        /**
+         * Inserts checkboxes after level_select_4 in both the desktop row
+         * (#levels_full) and the mobile dropdown (#levels_compact).
+         * Returns true once #levels_full is found.
+         */
+        function tryInsert() {
+            const levelsFull = document.getElementById('levels_full');
+            if (!levelsFull) return false;
+
+            // Desktop: append label directly inside #levels_full
+            if (!document.getElementById('ms-nf-desktop')) {
+                const label = makeNFCheckbox(
+                    'ms-nf-chk-desktop',
+                    'margin-left:12px;font-weight:normal;cursor:pointer;user-select:none;vertical-align:middle;'
+                );
+                label.id = 'ms-nf-desktop';
+                levelsFull.appendChild(label);
+                label.querySelector('.ms-nf-chk').addEventListener('change', onchange);
+            }
+
+            // Mobile: append <li> to #levels_compact dropdown
+            const levelsCompact = document.getElementById('levels_compact');
+            if (levelsCompact && !document.getElementById('ms-nf-mobile')) {
+                const li = document.createElement('li');
+                li.id = 'ms-nf-mobile';
+                li.style.borderTop = '1px solid #e5e5e5';
+                const label = makeNFCheckbox(
+                    'ms-nf-chk-mobile',
+                    'display:block;padding:3px 20px;font-weight:normal;cursor:pointer;user-select:none;white-space:nowrap;'
+                );
+                li.appendChild(label);
+                levelsCompact.appendChild(li);
+                label.querySelector('.ms-nf-chk').addEventListener('change', onchange);
+            }
+
+            syncAll();
+            return true;
+        }
+
+        if (!tryInsert()) {
+            const obs = new MutationObserver(() => {
+                if (tryInsert()) obs.disconnect();
+            });
+            obs.observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Apply initial NF state — #game may not exist yet either
+        if (!applyNF(nfEnabled)) {
+            const obs2 = new MutationObserver(() => {
+                if (document.getElementById('game')) {
+                    applyNF(nfEnabled);
+                    obs2.disconnect();
+                }
+            });
+            obs2.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+
     function init() {
         walk(document.body);
+
+        // Initialize NF toggle on game pages
+        if (/\/game(\/|$)/.test(location.pathname)) {
+            initNF();
+        }
 
         // Watch for dynamically loaded content
         new MutationObserver((mutations) => {
