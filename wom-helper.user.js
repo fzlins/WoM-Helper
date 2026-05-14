@@ -347,15 +347,26 @@
 
     // ── Entry point ────────────────────────────────────────────────────────
 
+    function initPageFeatures() {
+        const path = location.pathname;
+        if (/\/game(\/|$)/.test(path)) initNF();
+        if (/\/events(\/|$|\?)/.test(path)) initEventStats();
+    }
+
     function init() {
         walk(document.body);
-
-        if (/\/game(\/|$)/.test(location.pathname)) initNF();
-        if (/\/events(\/|$|\?)/.test(location.pathname)) initEventStats();
+        initPageFeatures();
 
         new MutationObserver(mutations => {
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
         }).observe(document.body, { childList: true, subtree: true });
+
+        // Detect SPA navigation (pushState / replaceState / back-forward)
+        const _push = history.pushState.bind(history);
+        history.pushState = function (...args) { _push(...args); initPageFeatures(); };
+        const _replace = history.replaceState.bind(history);
+        history.replaceState = function (...args) { _replace(...args); initPageFeatures(); };
+        window.addEventListener('popstate', initPageFeatures);
     }
 
     if (document.readyState === 'loading') {
