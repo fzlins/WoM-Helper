@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, and adds a No-Flag toggle to disable right-click flagging on minesweeper.online
-// @author
+// @version      1.3
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, and auto-clicks the player's rank link on minesweeper.online
+// @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
 // @supportURL   https://github.com/fzlins/WoM-Helper/issues
@@ -345,6 +345,55 @@
         }
     }
 
+    // ── My rank auto-click ──────────────────────────────────────────────────
+
+    /**
+     * Automatically clicks the player's rank link inside #stat_my_rank once
+     * per unique rank value. Fires on initial load (when the number first
+     * appears) and again whenever the rank changes (e.g. after a stats
+     * refresh). Pagination does not affect #stat_my_rank, so it is naturally
+     * ignored.
+     */
+    function initMyRankClick() {
+        let lastClickedRank = null;
+        let currentSpan = null;
+        let spanObs = null;
+
+        function tryClick() {
+            const span = document.getElementById('stat_my_rank');
+            if (!span) return;
+            const a = span.querySelector('a.position');
+            if (!a) return;
+            const rank = a.textContent.trim().replace(/\s+/g, '');
+            if (!/^\d+$/.test(rank)) return;
+            if (rank === lastClickedRank) return;
+            lastClickedRank = rank;
+            a.click();
+        }
+
+        function attachSpanObs(span) {
+            if (spanObs) spanObs.disconnect();
+            spanObs = new MutationObserver(tryClick);
+            spanObs.observe(span, { childList: true, subtree: true, characterData: true });
+            currentSpan = span;
+        }
+
+        // Persistent — never disconnects, so it survives SPA navigation and
+        // re-attaches whenever #stat_my_rank is replaced by a new element.
+        new MutationObserver(() => {
+            const span = document.getElementById('stat_my_rank');
+            if (span && span !== currentSpan) {
+                lastClickedRank = null; // new page context: allow re-click
+                attachSpanObs(span);
+                tryClick();
+            }
+        }).observe(document.body, { childList: true, subtree: true });
+
+        // Handle element already present on script load
+        const span = document.getElementById('stat_my_rank');
+        if (span) { attachSpanObs(span); tryClick(); }
+    }
+
     // ── Entry point ────────────────────────────────────────────────────────
 
     function initPageFeatures() {
@@ -356,6 +405,7 @@
     function init() {
         walk(document.body);
         initPageFeatures();
+        initMyRankClick();
 
         new MutationObserver(mutations => {
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);

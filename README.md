@@ -11,6 +11,7 @@ A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) 
 - **Language-aware links** — Links are generated using the current page's language prefix.
 - **NF (No-Flag) toggle** — An auxiliary feature for players who want to practice No-Flag play style. On game pages, a checkbox labeled **NF** is injected after the *Custom* level selector (desktop row and mobile dropdown). When checked, all right-click input on the game board is blocked, preventing accidental flag placement. The setting persists across sessions via `localStorage`.
 - **Event stats column** — On the [/events](https://minesweeper.online/events) page, a 🎯 column is appended to the ranking table showing each player's projected total event points at the event's end, based on their current pace. Hovering a cell reveals the `/d` (daily) average in a tooltip.
+- **Auto-click my rank** — Whenever a page loads and `#stat_my_rank` contains a valid rank number, the rank link is clicked automatically (once). If the rank value changes after a stats refresh, it is clicked again. Pagination changes are naturally ignored.
 - **Dynamic content** — Uses a `MutationObserver` to handle content loaded after the initial page render.
 
 ## Installation
