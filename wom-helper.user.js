@@ -4,6 +4,9 @@
 // @version      1.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, and adds a No-Flag toggle to disable right-click flagging on minesweeper.online
 // @author
+// @license      MIT
+// @homepageURL  https://github.com/fzlins/WoM-Helper
+// @supportURL   https://github.com/fzlins/WoM-Helper/issues
 // @icon         https://minesweeper.online/favicon.ico
 // @match        https://minesweeper.online/*
 // @grant        none
