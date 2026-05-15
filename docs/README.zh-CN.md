@@ -26,6 +26,10 @@
 2. 在浏览器中打开 [wom-helper.user.js](https://raw.githubusercontent.com/fzlins/WoM-Helper/main/wom-helper.user.js)。
 3. Tampermonkey 将提示安装，点击 **安装** 即可。
 
+> **脚本无法运行？** 在 Chrome 系浏览器上，Tampermonkey 5.3+ 需要额外的一次性设置才能执行用户脚本。详见 [Q209：用户脚本执行权限](https://www.tampermonkey.net/faq.php?q=Q209#Q209)：
+> - **Chrome/Edge 138+** — 右键点击 Tampermonkey 图标 → *管理扩展程序* → 启用 **允许用户脚本**。
+> - **旧版 Chrome/Edge** — 前往 `chrome://extensions`（或 `edge://extensions`），开启 **开发者模式**。
+
 ## 密度公式
 
 $$\text{密度} = \frac{\text{雷数}}{W \times H} \times 100\%$$

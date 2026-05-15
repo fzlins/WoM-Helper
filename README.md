@@ -26,6 +26,10 @@ Install directly from [Greasy Fork](https://greasyfork.org/scripts/578042-minesw
 2. Open [wom-helper.user.js](https://raw.githubusercontent.com/fzlins/WoM-Helper/main/wom-helper.user.js) in your browser.
 3. Tampermonkey will prompt you to install it — click **Install**.
 
+> **Script not working?** Tampermonkey 5.3+ on Chrome-based browsers requires an extra one-time step before userscripts can run. See [Q209: Permission to execute userscripts](https://www.tampermonkey.net/faq.php?q=Q209#Q209) for instructions:
+> - **Chrome/Edge 138+** — Right-click the Tampermonkey icon → *Manage Extension* → enable **Allow User Scripts**.
+> - **Older Chrome/Edge** — Go to `chrome://extensions` (or `edge://extensions`) and enable **Developer Mode**.
+
 ## Density Formula
 
 $$\text{density} = \frac{\text{mines}}{W \times H} \times 100\%$$

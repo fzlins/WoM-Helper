@@ -26,6 +26,10 @@
 2. ブラウザで [wom-helper.user.js](https://raw.githubusercontent.com/fzlins/WoM-Helper/main/wom-helper.user.js) を開きます。
 3. Tampermonkey がインストールを促すダイアログを表示しますので、**インストール** をクリックしてください。
 
+> **スクリプトが動作しない場合** Chrome 系ブラウザで Tampermonkey 5.3+ を使用する場合、ユーザースクリプトを実行するために一度だけ追加設定が必要です。詳細は [Q209: ユーザースクリプトの実行許可](https://www.tampermonkey.net/faq.php?q=Q209#Q209) を参照してください：
+> - **Chrome/Edge 138+** — Tampermonkey アイコンを右クリック → *拡張機能を管理* → **ユーザースクリプトを許可** を有効化。
+> - **旧バージョンの Chrome/Edge** — `chrome://extensions`（または `edge://extensions`）を開き、**デベロッパー モード** を有効化。
+
 ## 密度の計算式
 
 $$\text{密度} = \frac{\text{地雷数}}{W \times H} \times 100\%$$
