@@ -320,29 +320,35 @@
             }
         }
 
-        function setupTable() {
-            const table = document.getElementById('stat_table');
-            if (!table) return false;
-            const thead = table.querySelector('#stat_table_head');
-            const tbody = table.querySelector('#stat_table_body');
-            if (!thead || !tbody) return false;
+        let currentTbody = null;
+        let tbodyObs = null;
 
-            ensureHeaders(thead);
-            fillBodyCols(tbody);
-
-            // childList-only (no subtree) — fires on pagination, not on our own <td> inserts
-            new MutationObserver(() => {
+        function attachTbodyObs(thead, tbody) {
+            if (tbodyObs) tbodyObs.disconnect();
+            currentTbody = tbody;
+            tbodyObs = new MutationObserver(() => {
                 ensureHeaders(thead);
                 fillBodyCols(tbody);
-            }).observe(tbody, { childList: true });
-
-            return true;
+            });
+            tbodyObs.observe(tbody, { childList: true });
         }
 
-        if (!setupTable()) {
-            const obs = new MutationObserver(() => { if (setupTable()) obs.disconnect(); });
-            obs.observe(document.body, { childList: true, subtree: true });
+        function trySetup() {
+            if (!/\/events(\/|$|\?)/.test(location.pathname)) return;
+            const table = document.getElementById('stat_table');
+            if (!table) return;
+            const thead = table.querySelector('#stat_table_head');
+            const tbody = table.querySelector('#stat_table_body');
+            if (!thead || !tbody || tbody === currentTbody) return;
+            ensureHeaders(thead);
+            fillBodyCols(tbody);
+            attachTbodyObs(thead, tbody);
         }
+
+        // Single persistent observer for the script's lifetime — never disconnects.
+        // Checks the URL before acting, so stat_table on other pages is ignored.
+        new MutationObserver(trySetup).observe(document.body, { childList: true, subtree: true });
+        trySetup();
     }
 
     // ── Auto-duel ──────────────────────────────────────────────────────────
@@ -488,13 +494,14 @@
     function initPageFeatures() {
         const path = location.pathname;
         if (/\/game(\/|$)/.test(path)) initNF();
-        if (/\/events(\/|$|\?)/.test(path)) initEventStats();
+
         if (/\/pvp(\/|$|\?)/.test(path)) initAutoDuel();
     }
 
     function init() {
         walk(document.body);
         initPageFeatures();
+        initEventStats();
         initMyRankClick();
 
         new MutationObserver(mutations => {
