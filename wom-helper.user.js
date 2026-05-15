@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, and auto-clicks the player's rank link on minesweeper.online
+// @version      1.4
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, and adds an auto-find-opponent toggle on the PvP page on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -345,6 +345,95 @@
         }
     }
 
+    // ── Auto-duel ──────────────────────────────────────────────────────────
+
+    const AUTO_DUEL_KEY = 'ms-auto-duel-enabled';
+
+    /**
+     * Injects an "Auto" checkbox after #start_duel_btn on the /pvp page.
+     * When checked, automatically clicks the button whenever it becomes
+     * enabled (initially and again after each match ends). State is persisted
+     * in localStorage.
+     */
+    function initAutoDuel() {
+        let autoEnabled = localStorage.getItem(AUTO_DUEL_KEY) === '1';
+        let clickTimer = null;
+        let cancelListenerAdded = false;
+
+        function tryClickBtn() {
+            if (!autoEnabled) return;
+            const btn = document.getElementById('start_duel_btn');
+            if (!btn || btn.disabled || btn.classList.contains('disabled')) return;
+            btn.click();
+        }
+
+        function scheduleClick(delay) {
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(tryClickBtn, delay ?? 400);
+        }
+
+        function tryInsert() {
+            const btn = document.getElementById('start_duel_btn');
+            if (!btn) return;
+            if (document.getElementById('ms-auto-duel-chk')) return;
+
+            const label = document.createElement('label');
+            label.htmlFor = 'ms-auto-duel-chk';
+            label.title = 'Auto-find opponent';
+            label.style.cssText =
+                'margin-left:8px;font-weight:normal;cursor:pointer;' +
+                'user-select:none;vertical-align:middle;white-space:nowrap;';
+
+            const chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.id = 'ms-auto-duel-chk';
+            chk.checked = autoEnabled;
+            chk.style.cssText = 'margin-right:3px;vertical-align:middle;cursor:pointer;';
+
+            const span = document.createElement('span');
+            span.textContent = 'Auto';
+            span.style.verticalAlign = 'middle';
+
+            label.append(chk, span);
+
+            chk.addEventListener('change', function () {
+                autoEnabled = this.checked;
+                localStorage.setItem(AUTO_DUEL_KEY, autoEnabled ? '1' : '0');
+                if (autoEnabled) scheduleClick(0);
+            });
+
+            btn.insertAdjacentElement('afterend', label);
+
+            // Re-click automatically whenever the button transitions back to enabled
+            // (e.g. after a match completes or search times out).
+            new MutationObserver(() => scheduleClick()).observe(btn, {
+                attributes: true, attributeFilter: ['disabled', 'class']
+            });
+
+            // Register the cancel listener only once for the lifetime of the page.
+            if (!cancelListenerAdded) {
+                cancelListenerAdded = true;
+                document.addEventListener('click', function (e) {
+                    if (e.target?.id === 'cancel_duel_btn' || e.target?.closest?.('#cancel_duel_btn')) {
+                        clearTimeout(clickTimer);
+                        autoEnabled = false;
+                        localStorage.setItem(AUTO_DUEL_KEY, '0');
+                        const c = document.getElementById('ms-auto-duel-chk');
+                        if (c) c.checked = false;
+                    }
+                }, true);
+            }
+
+            // Initial auto-click if the feature was already enabled
+            scheduleClick(500);
+        }
+
+        // Persistent — never disconnects so it can re-insert the checkbox
+        // whenever #start_duel_btn re-appears after a cancel or page update.
+        new MutationObserver(tryInsert).observe(document.body, { childList: true, subtree: true });
+        tryInsert();
+    }
+
     // ── My rank auto-click ──────────────────────────────────────────────────
 
     /**
@@ -400,6 +489,7 @@
         const path = location.pathname;
         if (/\/game(\/|$)/.test(path)) initNF();
         if (/\/events(\/|$|\?)/.test(path)) initEventStats();
+        if (/\/pvp(\/|$|\?)/.test(path)) initAutoDuel();
     }
 
     function init() {
