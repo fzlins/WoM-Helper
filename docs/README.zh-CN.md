@@ -1,18 +1,27 @@
 # WoM Helper
 
-[English](../README.md) 简体中文 [日本語](./README.ja.md) [Русский](./README.ru.md) [DeepWiki](https://deepwiki.com/fzlins/WoM-Helper)
+[![EN](https://img.shields.io/badge/EN-gray)](../README.md) ![ZH-CN](https://img.shields.io/badge/ZH--CN-blue) [![JA](https://img.shields.io/badge/JA-gray)](./README.ja.md) [![RU](https://img.shields.io/badge/RU-gray)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
 适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能，并支持在设置页面单独开关每项功能。
+
+## 设置
+
+在[设置页面](https://minesweeper.online/settings)的设置面板底部，会出现一个 **WoM Helper** 区块，可开关以下功能；切换后导航到对应页面即刻生效，无需刷新：
+
+- 棋盘链接与雷密度
+- 活动积分预测
+- 一键领取任务奖励
+- 自动滚动到我的排名
 
 ## 功能
 
 - **棋盘链接与雷密度** — 页面上任意 `WxH/M` 格式的棋盘规格（例如 `30x16/99`）会自动转换为可点击链接，点击即可启动对应配置的游戏。规格旁边还会显示雷密度百分比，让你一眼判断难度高低。
+
 - **NF（无旗）开关** — 游戏页面的难度选择器旁会出现一个 **NF** 复选框（桌面端和移动端均可使用）。勾选后，棋盘上的右键操作将被禁用，防止误插旗帜，非常适合练习无旗打法。该设置在会话之间自动记忆。
 - **活动预计列** — 在[活动页面](https://minesweeper.online/events)的排行榜中新增 🎯 列，根据玩家当前进度预测活动结束时的总积分。悬停任意格可查看每日均值。
 - **自动滚动到我的排名** — 排行榜加载完毕或积分刷新后排名变化时，页面会自动滚动到你在排行榜中的位置。翻页操作不会触发此行为。
 - **自动寻找对手（PvP）** — 在 [PvP 页面](https://minesweeper.online/pvp)的 *寻找对手* 按钮旁会出现一个 **Auto** 复选框。勾选后，每当按钮可用时（页面加载时、每场对局或超时结束后）都会自动点击。点击 *取消* 可随时停止。该设置在会话之间自动记忆。
 - **一键领取任务奖励** — 在[任务页面](https://minesweeper.online/quests)，当某类任务中有可领取的奖励时，该类别顶部会出现一个 *全部领取* 按钮，点击一次即可领取其中所有可领取奖励；全部领取完毕后按钮自动消失。
-- **设置面板** — 在[设置页面](https://minesweeper.online/settings)的设置面板底部，会出现一个 **WoM Helper** 区块，包含每项功能的独立复选框。可随时开关任意功能，切换后导航到对应页面即刻生效，无需刷新。
 
 ## 安装
 
@@ -29,10 +38,6 @@
 > **脚本无法运行？** 在 Chrome 系浏览器上，Tampermonkey 5.3+ 需要额外的一次性设置才能执行用户脚本。详见 [Q209：用户脚本执行权限](https://www.tampermonkey.net/faq.php?q=Q209#Q209)：
 > - **Chrome/Edge 138+** — 右键点击 Tampermonkey 图标 → *管理扩展程序* → 启用 **允许用户脚本**。
 > - **旧版 Chrome/Edge** — 前往 `chrome://extensions`（或 `edge://extensions`），开启 **开发者模式**。
-
-## 密度公式
-
-$$\text{密度} = \frac{\text{雷数}}{W \times H} \times 100\%$$
 
 ## 许可证
 
