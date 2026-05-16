@@ -8,6 +8,8 @@ This is a single-file Tampermonkey userscript (`wom-helper.user.js`) for [minesw
 
 The version is declared in the `@version` field of the UserScript metadata block at the top of `wom-helper.user.js`. Versions always use three segments: `MAJOR.MINOR.PATCH`.
 
+**Only update the version when the user explicitly asks to commit or publish, or when they ask you to bump the version.** Do not bump the version on every individual edit during an iterative working session — multiple rounds of changes in one conversation count as a single version bump at the end. If the user has not mentioned committing or publishing, leave the version unchanged.
+
 **Only update the version when `wom-helper.user.js` itself is modified.** If the commit only touches other files (READMEs, docs, `.github/`, etc.), leave the version unchanged.
 
 | Commit type              | Version segment to increment |

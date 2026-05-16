@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.9.0
+// @version      1.9.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -49,6 +49,9 @@
             featQuestCollectDesc: 'Adds a one-click button to collect all available rewards in each quest table.',
             featMyRank: 'My-rank auto-scroll',
             featMyRankDesc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
+            questCollectAllBtn: 'Collect All',
+            eventStatsHeader: 'Est. Total',
+            eventStatsPerDay: 'avg/day',
         },
         de: {
             featBoardLinks: 'Spielfeld-Links & Minendichte',
@@ -59,6 +62,9 @@
             featQuestCollectDesc: 'Fügt eine Schaltfläche hinzu, um alle verfügbaren Belohnungen in jeder Quest-Tabelle mit einem Klick einzusammeln.',
             featMyRank: 'Automatischer Rang-Scroll',
             featMyRankDesc: 'Scrollt die Rangliste automatisch zur eigenen Rangzeile, sobald der Rang geladen oder geändert wird.',
+            questCollectAllBtn: 'Alle abholen',
+            eventStatsHeader: 'Est. Gesamt',
+            eventStatsPerDay: 'Ø/Tag',
         },
         ru: {
             featBoardLinks: 'Ссылки на поле & плотность мин',
@@ -69,6 +75,9 @@
             featQuestCollectDesc: 'Добавляет кнопку для получения всех доступных наград в каждой таблице заданий одним кликом.',
             featMyRank: 'Авто-прокрутка к рангу',
             featMyRankDesc: 'Автоматически прокручивает таблицу лидеров до вашей строки ранга при загрузке или изменении ранга.',
+            questCollectAllBtn: 'Получить все',
+            eventStatsHeader: 'Прогноз итога',
+            eventStatsPerDay: 'ср./день',
         },
         es: {
             featBoardLinks: 'Enlaces de tablero & densidad de minas',
@@ -79,6 +88,9 @@
             featQuestCollectDesc: 'Añade un botón de un clic para recolectar todas las recompensas disponibles en cada tabla de misiones.',
             featMyRank: 'Auto-desplazamiento a mi rango',
             featMyRankDesc: 'Desplaza automáticamente la tabla de clasificación a tu fila de rango cuando se carga o cambia.',
+            questCollectAllBtn: 'Recoger todo',
+            eventStatsHeader: 'Total est.',
+            eventStatsPerDay: 'prom./día',
         },
         pt: {
             featBoardLinks: 'Links de tabuleiro & densidade de minas',
@@ -89,6 +101,9 @@
             featQuestCollectDesc: 'Adiciona um botão de um clique para coletar todas as recompensas disponíveis em cada tabela de missões.',
             featMyRank: 'Rolagem automática para minha classificação',
             featMyRankDesc: 'Rola automaticamente a tabela de classificação para sua linha de classificação quando o ranking é carregado ou alterado.',
+            questCollectAllBtn: 'Coletar tudo',
+            eventStatsHeader: 'Total est.',
+            eventStatsPerDay: 'méd./dia',
         },
         it: {
             featBoardLinks: 'Link campo & densità mine',
@@ -99,6 +114,9 @@
             featQuestCollectDesc: 'Aggiunge un pulsante per raccogliere tutte le ricompense disponibili in ogni tabella delle quest con un clic.',
             featMyRank: 'Auto-scroll al mio grado',
             featMyRankDesc: 'Scorre automaticamente la classifica fino alla tua riga di grado quando il grado viene caricato o cambia.',
+            questCollectAllBtn: 'Ritira tutto',
+            eventStatsHeader: 'Totale prev.',
+            eventStatsPerDay: 'media/giorno',
         },
         fr: {
             featBoardLinks: 'Liens de plateau & densité de mines',
@@ -109,6 +127,9 @@
             featQuestCollectDesc: 'Ajoute un bouton en un clic pour collecter toutes les récompenses disponibles dans chaque tableau de quêtes.',
             featMyRank: 'Défilement automatique vers mon rang',
             featMyRankDesc: 'Fait défiler automatiquement le classement jusqu\'à votre ligne de rang lors du chargement ou d\'un changement.',
+            questCollectAllBtn: 'Tout collecter',
+            eventStatsHeader: 'Total est.',
+            eventStatsPerDay: 'moy./jour',
         },
         cn: {
             featBoardLinks: '棋盘链接 & 雷密度',
@@ -119,6 +140,9 @@
             featQuestCollectDesc: '在每个任务表格中添加一键领取所有可用奖励的按钮。',
             featMyRank: '自动滚动到我的排名',
             featMyRankDesc: '当排名加载或发生变化时，自动将排行榜滚动到您的位置。',
+            questCollectAllBtn: '全部领取',
+            eventStatsHeader: '预计总分',
+            eventStatsPerDay: '平均每天',
         },
         tw: {
             featBoardLinks: '棋盤連結 & 地雷密度',
@@ -129,6 +153,9 @@
             featQuestCollectDesc: '在每個任務表格中新增一鍵領取所有可用獎勵的按鈕。',
             featMyRank: '自動捲動至我的排名',
             featMyRankDesc: '當排名載入或變更時，自動將排行榜捲動至您的位置。',
+            questCollectAllBtn: '全部領取',
+            eventStatsHeader: '預計總分',
+            eventStatsPerDay: '平均每天',
         },
         ja: {
             featBoardLinks: 'ボードリンク & 地雷密度',
@@ -139,6 +166,9 @@
             featQuestCollectDesc: '各クエストテーブルで利用可能なすべての報酬をワンクリックで収集するボタンを追加します。',
             featMyRank: '自分のランクへ自動スクロール',
             featMyRankDesc: 'ランクが読み込まれたり変更されたりすると、リーダーボードが自分のランク行に自動的にスクロールします。',
+            questCollectAllBtn: '一括受け取り',
+            eventStatsHeader: '予想合計',
+            eventStatsPerDay: '日平均',
         },
         ko: {
             featBoardLinks: '보드 링크 & 지뢰 밀도',
@@ -149,6 +179,9 @@
             featQuestCollectDesc: '각 퀘스트 테이블에서 사용 가능한 모든 보상을 한 번에 수집하는 버튼을 추가합니다.',
             featMyRank: '내 순위로 자동 스크롤',
             featMyRankDesc: '순위가 로드되거나 변경될 때 리더보드가 내 순위 행으로 자동 스크롤됩니다.',
+            questCollectAllBtn: '전부 수집',
+            eventStatsHeader: '예상 합계',
+            eventStatsPerDay: '일 평균',
         },
     };
 
@@ -405,13 +438,13 @@
             return { avgD: Math.round(avgPerDay), est: Math.round(est) };
         }
 
-        /** Appends the 🎯 header column to the leaderboard thead (idempotent). */
+        /** Appends the projected-score header column to the leaderboard thead (idempotent). */
         function ensureHeaders(thead) {
             const row = thead.querySelector('tr');
             if (!row || row.querySelector('th[data-ms-evt]')) return;
             const th = document.createElement('th');
             th.setAttribute('data-ms-evt', '1');
-            th.textContent = '🎯';
+            th.textContent = t('eventStatsHeader');
             row.appendChild(th);
         }
 
@@ -437,7 +470,7 @@
                 if (stats) {
                     const span = document.createElement('span');
                     span.className = 'help';
-                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()}/d`);
+                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()} ${t('eventStatsPerDay')}`);
 
                     const s = document.createElement('strong');
                     s.textContent = stats.est.toLocaleString();
@@ -622,7 +655,7 @@
                 allBtn = document.createElement('button');
                 allBtn.className = BTN_CLASS + ' btn btn-danger btn-xs';
                 allBtn.style.cssText = 'vertical-align:middle;';
-                allBtn.innerHTML = collectBtns[0].innerHTML;
+                allBtn.textContent = t('questCollectAllBtn');
                 allBtn.addEventListener('click', () => {
                     getCollectBtns(table).forEach(btn => btn.click());
                 });
