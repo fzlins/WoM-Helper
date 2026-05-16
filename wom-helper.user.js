@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.5.1
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and adds a collect-all button on the Quests page on minesweeper.online
+// @version      1.6.0
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, adds a collect-all button on the Quests page, and adds a sell-max button on the Marketplace page on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -546,6 +546,66 @@
         if (span) { attachSpanObs(span); tryClick(); }
     }
 
+    // ── Selling max button ─────────────────────────────────────────────────
+
+    /**
+     * On /marketplace pages, injects a ▲ link after each quantity input in
+     * the "出售" (Sell) modal. Clicking the link fills the input with its
+     * maximum value (the quantity the player currently owns).
+     */
+    function initSellMaxBtn() {
+        function fillAll(content) {
+            content.querySelectorAll('input.market-amount-small').forEach(input => {
+                const max = input.getAttribute('max');
+                if (!max) return;
+                input.value = max;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+
+        function processSellingContent(content) {
+            // Per-row max links
+            content.querySelectorAll('input.market-amount-small').forEach(input => {
+                if (input.getAttribute(PROCESSED)) return;
+                input.setAttribute(PROCESSED, '1');
+                const max = input.getAttribute('max');
+                if (!max) return;
+                const a = document.createElement('a');
+                a.href = 'javascript:void(0)';
+                a.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
+                a.style.cssText = 'margin-left:3px;';
+                a.addEventListener('click', () => {
+                    input.value = max;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                input.insertAdjacentElement('afterend', a);
+            });
+
+            // Column-header fill-all link
+            const table = content.querySelector('table');
+            if (!table) return;
+            const th = table.querySelector('thead tr th:nth-child(2)');
+            if (!th || th.querySelector('.ms-sell-max-all')) return;
+            const allLink = document.createElement('a');
+            allLink.href = 'javascript:void(0)';
+            allLink.className = 'ms-sell-max-all';
+            allLink.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
+            allLink.style.cssText = 'margin-left:3px;';
+            allLink.addEventListener('click', () => fillAll(content));
+            th.appendChild(allLink);
+        }
+
+        new MutationObserver(() => {
+            const content = document.getElementById('selling_content');
+            if (content) processSellingContent(content);
+        }).observe(document.body, { childList: true, subtree: true });
+
+        const content = document.getElementById('selling_content');
+        if (content) processSellingContent(content);
+    }
+
     // ── Entry point ────────────────────────────────────────────────────────
 
     function initPageFeatures() {
@@ -561,6 +621,7 @@
         initEventStats();
         initQuestCollect();
         initMyRankClick();
+        initSellMaxBtn();
 
         new MutationObserver(mutations => {
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
