@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.4.1
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, and adds an auto-find-opponent toggle on the PvP page on minesweeper.online
+// @version      1.5.1
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and adds a collect-all button on the Quests page on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -440,6 +440,63 @@
         tryInsert();
     }
 
+    // ── Quest collect-all ──────────────────────────────────────────────────────
+
+    /**
+     * On /quests pages, injects a "领取全部" button next to each quest-table
+     * heading whenever the table contains any collectable rows.  Clicking the
+     * button auto-clicks every visible collect_btn in that table.  The button
+     * is removed automatically once there are no more rows left to collect.
+     */
+    function initQuestCollect() {
+        const BTN_CLASS = 'ms-quest-collect-all';
+
+        /** Returns all desktop-visible collect buttons in the table's last column. */
+        function getCollectBtns(table) {
+            return table.querySelectorAll('tbody td:last-child button[class*="collect_btn"]');
+        }
+
+        /**
+         * Adds or removes the "collect all" button in the last <th> of the
+         * table's header row, depending on whether any collectable rows exist.
+         */
+        function processTable(table) {
+            const th = table.querySelector('thead tr th:last-child');
+            if (!th) return;
+
+            const collectBtns = getCollectBtns(table);
+            let allBtn = th.querySelector('.' + BTN_CLASS);
+
+            if (collectBtns.length === 0) {
+                if (allBtn) allBtn.remove();
+                return;
+            }
+
+            if (!allBtn) {
+                allBtn = document.createElement('button');
+                allBtn.className = BTN_CLASS + ' btn btn-danger btn-xs';
+                allBtn.style.cssText = 'vertical-align:middle;';
+                allBtn.innerHTML = collectBtns[0].innerHTML;
+                allBtn.addEventListener('click', () => {
+                    getCollectBtns(table).forEach(btn => btn.click());
+                });
+                th.appendChild(allBtn);
+            }
+        }
+
+        function trySetup() {
+            if (!/\/quests(\/|$|\?)/.test(location.pathname)) return;
+            const block = document.getElementById('QuestsBlock');
+            if (!block) return;
+            block.querySelectorAll('table.table').forEach(processTable);
+        }
+
+        // Persistent observer — re-evaluates on every DOM change so the button
+        // disappears after all quests in a table have been collected.
+        new MutationObserver(trySetup).observe(document.body, { childList: true, subtree: true });
+        trySetup();
+    }
+
     // ── My rank auto-click ──────────────────────────────────────────────────
 
     /**
@@ -502,6 +559,7 @@
         walk(document.body);
         initPageFeatures();
         initEventStats();
+        initQuestCollect();
         initMyRankClick();
 
         new MutationObserver(mutations => {

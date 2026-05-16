@@ -6,14 +6,12 @@ This is a single-file Tampermonkey userscript (`wom-helper.user.js`) for [minesw
 
 ## Version Numbering
 
-The version is declared in the `@version` field of the UserScript metadata block at the top of `wom-helper.user.js`. **Always update the version on every commit.**
+The version is declared in the `@version` field of the UserScript metadata block at the top of `wom-helper.user.js`. **Always update the version on every commit.** Versions always use three segments: `MAJOR.MINOR.PATCH`.
 
 | Commit type              | Version segment to increment |
 | ------------------------ | ---------------------------- |
-| `feat:` / `refactor:`   | **Minor** — e.g. `1.4` → `1.5` |
-| All other types (`fix:`, `docs:`, `chore:`, `style:`, etc.) | **Patch** — e.g. `1.4.0` → `1.4.1` |
-
-> If the current version has no patch segment (e.g. `1.4`) and a patch bump is needed, append `.1` (→ `1.4.1`).
+| `feat:` / `refactor:`   | **Minor** — bump minor, reset patch to `0` — e.g. `1.4.1` → `1.5.0` |
+| All other types (`fix:`, `docs:`, `chore:`, `style:`, etc.) | **Patch** — e.g. `1.5.0` → `1.5.1` |
 
 ## File Structure
 
@@ -50,7 +48,10 @@ docs/
 4. **Auto-duel** (`initAutoDuel`)  
    On `/pvp` pages, injects an "Auto" checkbox that automatically re-clicks `#start_duel_btn` whenever it becomes enabled. Cancelled by clicking `#cancel_duel_btn`. State saved in `localStorage`.
 
-5. **My-rank auto-click** (`initMyRankClick`)  
+5. **Quest collect-all** (`initQuestCollect`)  
+   On `/quests` pages, watches each table inside `#QuestsBlock` and injects a button (cloning the site's own collect-button style and text) into the last `<th>` of the table's header row whenever the table contains any collectable rows. Clicking it auto-clicks all visible `collect_btn` buttons in that table only. The button is removed automatically when no collectable rows remain.
+
+6. **My-rank auto-click** (`initMyRankClick`)  
    Watches `#stat_my_rank` and auto-clicks the `.position` anchor whenever the rank value changes, scrolling the leaderboard to the player's row.
 
 ## Entry Point
@@ -60,6 +61,7 @@ init()
   ├─ walk(document.body)        — initial DOM scan
   ├─ initPageFeatures()         — NF toggle + auto-duel (path-gated)
   ├─ initEventStats()           — event leaderboard column
+  ├─ initQuestCollect()         — quests collect-all button
   ├─ initMyRankClick()          — rank auto-click
   ├─ MutationObserver(walk)     — process newly added nodes
   └─ history patch              — re-run initPageFeatures() on SPA navigation
@@ -72,7 +74,8 @@ The site uses `pushState`/`replaceState` for navigation. The script monkey-patch
 ## Adding a New Feature
 
 1. Write a self-contained `initXxx()` function.
-2. If it is page-specific, gate it with a path check inside `initPageFeatures()`.
+2. If it is page-specific, gate it with a path check inside `initPageFeatures()` or via an internal path guard.
 3. If it needs to run on every page, call it directly from `init()`.
-4. Bump the **minor** version in `@version`.
+4. Bump the **minor** version in `@version` (three-segment, e.g. `1.5.0`).
 5. Update `@description` if the feature is user-visible.
+6. Update `README.md` and all `docs/README.*.md` translations to document the new feature.

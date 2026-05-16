@@ -2,7 +2,7 @@
 
 [English](./README.md) [简体中文](./docs/README.zh-CN.md) [日本語](./docs/README.ja.md) [Русский](./docs/README.ru.md) [DeepWiki](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, and includes an auto-find-opponent toggle on the PvP page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, and adds a collect-all button on the Quests page.
 
 ## Features
 
@@ -13,6 +13,7 @@ A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) 
 - **Event stats column** — On the [/events](https://minesweeper.online/events) page, a 🎯 column is appended to the ranking table showing each player's projected total event points at the event's end, based on their current pace. Hovering a cell reveals the `/d` (daily) average in a tooltip.
 - **Auto-click my rank** — Whenever a page loads and `#stat_my_rank` contains a valid rank number, the rank link is clicked automatically (once). If the rank value changes after a stats refresh, it is clicked again. Pagination changes are naturally ignored.
 - **Auto-find opponent (PvP)** — On the [/pvp](https://minesweeper.online/pvp) page, an **Auto** checkbox is injected next to the *Find Opponent* button. When checked, the button is clicked automatically whenever it becomes available (on page load and again after each match or timeout). Clicking *Cancel* unchecks the box and stops the loop. The setting persists across sessions via `localStorage`. Works on all language variants of the page.
+- **Quest collect-all** — On the [/quests](https://minesweeper.online/quests) page, a button (mirroring the site’s own claim button style and label) is injected into the last column header of each quest table whenever the table has collectable rows. Clicking it claims all available rewards in that table at once. The button disappears automatically once all rewards have been claimed.
 - **Dynamic content** — Uses a `MutationObserver` to handle content loaded after the initial page render.
 
 ## Installation
