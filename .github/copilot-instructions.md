@@ -6,7 +6,9 @@ This is a single-file Tampermonkey userscript (`wom-helper.user.js`) for [minesw
 
 ## Version Numbering
 
-The version is declared in the `@version` field of the UserScript metadata block at the top of `wom-helper.user.js`. **Always update the version on every commit.** Versions always use three segments: `MAJOR.MINOR.PATCH`.
+The version is declared in the `@version` field of the UserScript metadata block at the top of `wom-helper.user.js`. Versions always use three segments: `MAJOR.MINOR.PATCH`.
+
+**Only update the version when `wom-helper.user.js` itself is modified.** If the commit only touches other files (READMEs, docs, `.github/`, etc.), leave the version unchanged.
 
 | Commit type              | Version segment to increment |
 | ------------------------ | ---------------------------- |
