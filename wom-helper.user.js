@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.7.0
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and provides one-click shortcuts on the Quests and Marketplace pages on minesweeper.online
+// @version      1.7.1
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and provides one-click shortcuts on the Quests page on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -560,6 +560,10 @@
      * price input, then the popover is hidden.
      */
     function initSellMaxBtn() {
+        // DISABLED: Temporarily disabled pending review of minesweeper.online marketplace rules.
+        // To re-enable: remove the `return;` below and uncomment `initSellMaxBtn()` in init().
+        return;
+
         function fillAll(content) {
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 const max = input.getAttribute('max');
@@ -714,7 +718,7 @@
         initEventStats();
         initQuestCollect();
         initMyRankClick();
-        initSellMaxBtn();
+        // initSellMaxBtn(); // DISABLED: see initSellMaxBtn() above
 
         new MutationObserver(mutations => {
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
