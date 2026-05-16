@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.6.0
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, adds a collect-all button on the Quests page, and adds a sell-max button on the Marketplace page on minesweeper.online
+// @version      1.7.0
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and provides one-click shortcuts on the Quests and Marketplace pages on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -549,9 +549,15 @@
     // ── Selling max button ─────────────────────────────────────────────────
 
     /**
-     * On /marketplace pages, injects a ▲ link after each quantity input in
-     * the "出售" (Sell) modal. Clicking the link fills the input with its
-     * maximum value (the quantity the player currently owns).
+     * On /marketplace pages, injects helpers into the "Sell" modal:
+     * - Column 2: ▲ link per row (fill max quantity) + ▲ header link (fill all).
+     * - Column 3: 🏷 link per row (fetch market price) + 🏷 header link (fetch all).
+     *
+     * The market-price fetch works by programmatically showing the Bootstrap
+     * popover on the item name (column 1).  The site's own `shown.bs.popover`
+     * handler calls `getMarketPriceWsAction` via Socket.IO; once the response
+     * populates `.market_price_{id}`, the value is read and written into the
+     * price input, then the popover is hidden.
      */
     function initSellMaxBtn() {
         function fillAll(content) {
@@ -564,8 +570,62 @@
             });
         }
 
+        /**
+         * Shows the item popover in column 1, waits for the site to populate
+         * `.market_price_{id}` via WebSocket, writes the value into priceInput,
+         * then hides the popover. Calls onDone() on completion or timeout.
+         */
+        function fetchMarketPrice(id, priceInput, helpSpan, onDone) {
+            if (!window.jQuery) { if (onDone) onDone(); return; }
+            const $ = window.jQuery;
+            $(helpSpan).popover('show');
+            let elapsed = 0;
+            const timer = setInterval(() => {
+                elapsed += 100;
+                const el = document.querySelector('.market_price_' + id);
+                if (el) {
+                    const text = el.textContent.trim();
+                    // Loading state: empty or contains only a spinner image (no digits, not 'n/a')
+                    if (text === 'n/a' || /\d/.test(text)) {
+                        clearInterval(timer);
+                        $(helpSpan).popover('hide');
+                        const num = parseInt(text.replace(/\D/g, ''), 10);
+                        if (!isNaN(num) && num > 0) {
+                            priceInput.value = num;
+                            priceInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            priceInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        if (onDone) onDone();
+                        return;
+                    }
+                }
+                if (elapsed >= 5000) {
+                    clearInterval(timer);
+                    $(helpSpan).popover('hide');
+                    if (onDone) onDone();
+                }
+            }, 100);
+        }
+
+        /** Fetches market prices for all rows sequentially to avoid WS throttling. */
+        function fetchAllPrices(content) {
+            const rows = [...content.querySelectorAll('tr[id^="selling_item_"]')].flatMap(row => {
+                const id = row.id.slice('selling_item_'.length);
+                const priceInput = row.querySelector('input.market-price-small');
+                const helpSpan = row.querySelector('td:first-child .help');
+                return priceInput && helpSpan ? [{ id, priceInput, helpSpan }] : [];
+            });
+            let i = 0;
+            function next() {
+                if (i >= rows.length) return;
+                const { id, priceInput, helpSpan } = rows[i++];
+                fetchMarketPrice(id, priceInput, helpSpan, () => setTimeout(next, 150));
+            }
+            next();
+        }
+
         function processSellingContent(content) {
-            // Per-row max links
+            // Per-row max links (column 2)
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 if (input.getAttribute(PROCESSED)) return;
                 input.setAttribute(PROCESSED, '1');
@@ -583,18 +643,51 @@
                 input.insertAdjacentElement('afterend', a);
             });
 
-            // Column-header fill-all link
+            // Per-row market-price fetch links (column 3)
+            content.querySelectorAll('input.market-price-small').forEach(priceInput => {
+                if (priceInput.getAttribute(PROCESSED)) return;
+                priceInput.setAttribute(PROCESSED, '1');
+                const row = priceInput.closest('tr[id^="selling_item_"]');
+                if (!row) return;
+                const id = row.id.slice('selling_item_'.length);
+                const helpSpan = row.querySelector('td:first-child .help');
+                if (!helpSpan) return;
+                const a = document.createElement('a');
+                a.href = 'javascript:void(0)';
+                a.className = 'ms-price-fetch';
+                a.innerHTML = '<i class="glyphicon glyphicon-tag"></i>';
+                a.style.cssText = 'margin-left:3px;';
+                a.addEventListener('click', () => fetchMarketPrice(id, priceInput, helpSpan));
+                const coinIcon = priceInput.closest('td')?.querySelector('img');
+                (coinIcon || priceInput).insertAdjacentElement('afterend', a);
+            });
+
             const table = content.querySelector('table');
             if (!table) return;
-            const th = table.querySelector('thead tr th:nth-child(2)');
-            if (!th || th.querySelector('.ms-sell-max-all')) return;
-            const allLink = document.createElement('a');
-            allLink.href = 'javascript:void(0)';
-            allLink.className = 'ms-sell-max-all';
-            allLink.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
-            allLink.style.cssText = 'margin-left:3px;';
-            allLink.addEventListener('click', () => fillAll(content));
-            th.appendChild(allLink);
+
+            // Column 2 header: fill-all ▲ link
+            const th2 = table.querySelector('thead tr th:nth-child(2)');
+            if (th2 && !th2.querySelector('.ms-sell-max-all')) {
+                const allLink = document.createElement('a');
+                allLink.href = 'javascript:void(0)';
+                allLink.className = 'ms-sell-max-all';
+                allLink.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
+                allLink.style.cssText = 'margin-left:3px;';
+                allLink.addEventListener('click', () => fillAll(content));
+                th2.appendChild(allLink);
+            }
+
+            // Column 3 header: fetch-all price 🏷 link
+            const th3 = table.querySelector('thead tr th:nth-child(3)');
+            if (th3 && !th3.querySelector('.ms-price-fetch-all')) {
+                const allPriceLink = document.createElement('a');
+                allPriceLink.href = 'javascript:void(0)';
+                allPriceLink.className = 'ms-price-fetch-all';
+                allPriceLink.innerHTML = '<i class="glyphicon glyphicon-tag"></i>';
+                allPriceLink.style.cssText = 'margin-left:3px;';
+                allPriceLink.addEventListener('click', () => fetchAllPrices(content));
+                th3.appendChild(allPriceLink);
+            }
         }
 
         new MutationObserver(() => {

@@ -54,12 +54,15 @@ docs/
 6. **My-rank auto-click** (`initMyRankClick`)  
    Watches `#stat_my_rank` and auto-clicks the `.position` anchor whenever the rank value changes, scrolling the leaderboard to the player's row.
 
+7. **Sell max & market price** (`initSellMaxBtn`)  
+   On `/marketplace` pages, watches the sell modal (`#selling_content`) via MutationObserver. Injects a **▲** link per row (and in the quantity column header) to fill each quantity input with the player's maximum owned amount. Also injects a **🏷** link per row (and in the price column header) that triggers the site's Bootstrap popover on the item's `.help` span to load the market price via Socket.IO, then polls `.market_price_{id}` until a numeric value or `n/a` appears and fills the price input accordingly. Sequential fetch with 150 ms delay between rows for the header link.
+
 ## Entry Point
 
 ```
 init()
   ├─ walk(document.body)        — initial DOM scan
-  ├─ initPageFeatures()         — NF toggle + auto-duel (path-gated)
+  ├─ initPageFeatures()         — NF toggle + auto-duel + sell max (path-gated)
   ├─ initEventStats()           — event leaderboard column
   ├─ initQuestCollect()         — quests collect-all button
   ├─ initMyRankClick()          — rank auto-click
@@ -78,4 +81,4 @@ The site uses `pushState`/`replaceState` for navigation. The script monkey-patch
 3. If it needs to run on every page, call it directly from `init()`.
 4. Bump the **minor** version in `@version` (three-segment, e.g. `1.5.0`).
 5. Update `@description` if the feature is user-visible.
-6. Update `README.md` and all `docs/README.*.md` translations to document the new feature.
+6. Update `README.md` and all `docs/README.*.md` translations to document the new feature. Write feature descriptions from the player's perspective: explain what the player does to trigger the feature and what benefit they get, using plain language. Avoid implementation details, internal function names, and DOM terminology — players should be able to understand the feature's purpose from the description alone.
