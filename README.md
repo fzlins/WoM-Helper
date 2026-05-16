@@ -15,10 +15,10 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 
 ## Features
 
-- **Board links & mine density** — Any `WxH/M` board spec anywhere on the page (e.g. `30x16/99`) is automatically turned into a clickable link that launches that exact game. The mine density is shown right after each spec, so you can gauge difficulty at a glance.
+- **Board links & mine density** — Any `WxH/M` board spec anywhere on the page (e.g. `30x16/99`) is automatically turned into a clickable link that launches that exact game. By default, hovering a link shows the mine density as a tooltip. On the Settings page you can switch to showing the density inline next to each link, or disable the feature entirely.
 
 - **NF (No-Flag) toggle** — A **NF** checkbox appears next to the difficulty selector on game pages (works on both desktop and mobile). When checked, right-clicking on the board is disabled, preventing accidental flag placement — perfect for practicing No-Flag style. The setting is remembered between sessions.
-- **Event stats column** — On the [Events](https://minesweeper.online/events) page, a 🎯 column appears in the leaderboard showing each player's projected total points by the end of the event, based on their current pace. Hover any cell to see the daily average.
+- **Event stats column** — On the [Events](https://minesweeper.online/events) page, an **Est. Total** column appears in the leaderboard showing each player's projected total points by the end of the event, based on their current pace. Hover any cell to see the daily average.
 - **Auto-scroll to my rank** — When the leaderboard loads or your rank changes after a stats update, the page automatically scrolls to your position in the table. Navigating between leaderboard pages does not trigger this.
 - **Auto-find opponent (PvP)** — On the [PvP](https://minesweeper.online/pvp) page, an **Auto** checkbox appears next to the *Find Opponent* button. When checked, the button is pressed automatically whenever it becomes available — on page load, after each match, or after a timeout. Click *Cancel* to stop. The setting is remembered between sessions.
 - **Quest collect-all** — On the [Quests](https://minesweeper.online/quests) page, a *Collect All* button appears at the top of each quest category whenever rewards are ready to collect. One click claims every available reward in that section; the button disappears once all are claimed.

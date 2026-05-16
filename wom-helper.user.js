@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.9.1
+// @version      1.10.0
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -31,6 +31,14 @@
         return localStorage.getItem(key) !== '0';
     }
 
+    /** Returns the board-links display mode: 0 = disabled, 1 = links only (density as tooltip), 2 = links + density inline (default). */
+    function getBoardLinksMode() {
+        const val = localStorage.getItem(FEAT_BOARD_LINKS_KEY);
+        if (val === '0') return 0;
+        if (val === '2') return 2;
+        return 1;
+    }
+
     // ── i18n ───────────────────────────────────────────────────────────────
 
     /** Returns the two-letter language code for the current page, e.g. 'de', 'cn', or 'en'. */
@@ -51,7 +59,11 @@
             featMyRankDesc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
             questCollectAllBtn: 'Collect All',
             eventStatsHeader: 'Est. Total',
-            eventStatsPerDay: 'avg/day',
+            eventStatsPerDay: '/day',
+            boardLinksOptDisabled: 'Disabled',
+            boardLinksOptLinks: 'Board links',
+            boardLinksOptDensity: 'Board links & density',
+            boardLinksDensityLabel: 'Mine density:',
         },
         de: {
             featBoardLinks: 'Spielfeld-Links & Minendichte',
@@ -64,7 +76,11 @@
             featMyRankDesc: 'Scrollt die Rangliste automatisch zur eigenen Rangzeile, sobald der Rang geladen oder geändert wird.',
             questCollectAllBtn: 'Alle abholen',
             eventStatsHeader: 'Est. Gesamt',
-            eventStatsPerDay: 'Ø/Tag',
+            eventStatsPerDay: '/Tag',
+            boardLinksOptDisabled: 'Deaktiviert',
+            boardLinksOptLinks: 'Spielfeld-Links',
+            boardLinksOptDensity: 'Spielfeld-Links & Minendichte',
+            boardLinksDensityLabel: 'Minendichte:',
         },
         ru: {
             featBoardLinks: 'Ссылки на поле & плотность мин',
@@ -77,7 +93,11 @@
             featMyRankDesc: 'Автоматически прокручивает таблицу лидеров до вашей строки ранга при загрузке или изменении ранга.',
             questCollectAllBtn: 'Получить все',
             eventStatsHeader: 'Прогноз итога',
-            eventStatsPerDay: 'ср./день',
+            eventStatsPerDay: '/день',
+            boardLinksOptDisabled: 'Отключено',
+            boardLinksOptLinks: 'Ссылки на поле',
+            boardLinksOptDensity: 'Ссылки & плотность мин',
+            boardLinksDensityLabel: 'Плотность мин:',
         },
         es: {
             featBoardLinks: 'Enlaces de tablero & densidad de minas',
@@ -90,7 +110,11 @@
             featMyRankDesc: 'Desplaza automáticamente la tabla de clasificación a tu fila de rango cuando se carga o cambia.',
             questCollectAllBtn: 'Recoger todo',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: 'prom./día',
+            eventStatsPerDay: '/día',
+            boardLinksOptDisabled: 'Desactivado',
+            boardLinksOptLinks: 'Solo enlaces',
+            boardLinksOptDensity: 'Enlaces & densidad',
+            boardLinksDensityLabel: 'Densidad de minas:',
         },
         pt: {
             featBoardLinks: 'Links de tabuleiro & densidade de minas',
@@ -103,7 +127,11 @@
             featMyRankDesc: 'Rola automaticamente a tabela de classificação para sua linha de classificação quando o ranking é carregado ou alterado.',
             questCollectAllBtn: 'Coletar tudo',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: 'méd./dia',
+            eventStatsPerDay: '/dia',
+            boardLinksOptDisabled: 'Desativado',
+            boardLinksOptLinks: 'Apenas links',
+            boardLinksOptDensity: 'Links & densidade',
+            boardLinksDensityLabel: 'Densidade de minas:',
         },
         it: {
             featBoardLinks: 'Link campo & densità mine',
@@ -116,7 +144,11 @@
             featMyRankDesc: 'Scorre automaticamente la classifica fino alla tua riga di grado quando il grado viene caricato o cambia.',
             questCollectAllBtn: 'Ritira tutto',
             eventStatsHeader: 'Totale prev.',
-            eventStatsPerDay: 'media/giorno',
+            eventStatsPerDay: '/giorno',
+            boardLinksOptDisabled: 'Disabilitato',
+            boardLinksOptLinks: 'Solo link',
+            boardLinksOptDensity: 'Link & densità',
+            boardLinksDensityLabel: 'Densità mine:',
         },
         fr: {
             featBoardLinks: 'Liens de plateau & densité de mines',
@@ -129,7 +161,11 @@
             featMyRankDesc: 'Fait défiler automatiquement le classement jusqu\'à votre ligne de rang lors du chargement ou d\'un changement.',
             questCollectAllBtn: 'Tout collecter',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: 'moy./jour',
+            eventStatsPerDay: '/jour',
+            boardLinksOptDisabled: 'Désactivé',
+            boardLinksOptLinks: 'Liens seulement',
+            boardLinksOptDensity: 'Liens & densité',
+            boardLinksDensityLabel: 'Densité de mines :',
         },
         cn: {
             featBoardLinks: '棋盘链接 & 雷密度',
@@ -142,7 +178,11 @@
             featMyRankDesc: '当排名加载或发生变化时，自动将排行榜滚动到您的位置。',
             questCollectAllBtn: '全部领取',
             eventStatsHeader: '预计总分',
-            eventStatsPerDay: '平均每天',
+            eventStatsPerDay: '/天',
+            boardLinksOptDisabled: '禁用',
+            boardLinksOptLinks: '棋盘链接',
+            boardLinksOptDensity: '棋盘链接 & 雷密度',
+            boardLinksDensityLabel: '雷密度：',
         },
         tw: {
             featBoardLinks: '棋盤連結 & 地雷密度',
@@ -155,7 +195,11 @@
             featMyRankDesc: '當排名載入或變更時，自動將排行榜捲動至您的位置。',
             questCollectAllBtn: '全部領取',
             eventStatsHeader: '預計總分',
-            eventStatsPerDay: '平均每天',
+            eventStatsPerDay: '/天',
+            boardLinksOptDisabled: '停用',
+            boardLinksOptLinks: '棋盤連結',
+            boardLinksOptDensity: '棋盤連結 & 地雷密度',
+            boardLinksDensityLabel: '地雷密度：',
         },
         ja: {
             featBoardLinks: 'ボードリンク & 地雷密度',
@@ -168,7 +212,11 @@
             featMyRankDesc: 'ランクが読み込まれたり変更されたりすると、リーダーボードが自分のランク行に自動的にスクロールします。',
             questCollectAllBtn: '一括受け取り',
             eventStatsHeader: '予想合計',
-            eventStatsPerDay: '日平均',
+            eventStatsPerDay: '/日',
+            boardLinksOptDisabled: '無効',
+            boardLinksOptLinks: 'リンクのみ',
+            boardLinksOptDensity: 'リンク & 地雷密度',
+            boardLinksDensityLabel: '地雷密度：',
         },
         ko: {
             featBoardLinks: '보드 링크 & 지뢰 밀도',
@@ -181,7 +229,11 @@
             featMyRankDesc: '순위가 로드되거나 변경될 때 리더보드가 내 순위 행으로 자동 스크롤됩니다.',
             questCollectAllBtn: '전부 수집',
             eventStatsHeader: '예상 합계',
-            eventStatsPerDay: '일 평균',
+            eventStatsPerDay: '/일',
+            boardLinksOptDisabled: '비활성화',
+            boardLinksOptLinks: '링크만',
+            boardLinksOptDensity: '링크 & 지뢰 밀도',
+            boardLinksDensityLabel: '지뢰 밀도:',
         },
     };
 
@@ -198,17 +250,25 @@
         return m ? m[1] : '';
     }
 
-    /** Returns a mine-density string, e.g. '(20.50%)'. */
+    /** Returns a mine-density percentage string, e.g. '20.50%'. */
+    function densityPct(w, h, mines) {
+        return `${((mines / (w * h)) * 100).toFixed(2)}%`;
+    }
+
+    /** Returns a mine-density string with parentheses, e.g. '(20.50%)'. */
     function densityText(w, h, mines) {
-        return `(${((mines / (w * h)) * 100).toFixed(2)}%)`;
+        return `(${densityPct(w, h, mines)})`;
     }
 
     /** Creates an <a> linking to the given board configuration. */
-    function makeLink(w, h, mines) {
+    function makeLink(w, h, mines, mode) {
         const a = document.createElement('a');
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
         a.textContent = `${w}x${h}/${mines}`;
         a.setAttribute(PROCESSED, '1');
+        if (mode === 1) {
+            a.title = `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`;
+        }
         return a;
     }
 
@@ -221,7 +281,7 @@
         return s;
     }
 
-    /** Replaces each WxH/M occurrence in a text node with a link + density span. */
+    /** Replaces each WxH/M occurrence in a text node with a link and optionally a density span. */
     function processTextNode(node) {
         const parent = node.parentNode;
         if (!parent) return;
@@ -230,13 +290,14 @@
         const matches = [...text.matchAll(/(\d+)x(\d+)\/(\d+)/g)];
         if (!matches.length) return;
 
+        const mode = getBoardLinksMode();
         const frag = document.createDocumentFragment();
         let pos = 0;
         for (const m of matches) {
             const [full, w, h, mines] = m;
             if (m.index > pos) frag.appendChild(document.createTextNode(text.slice(pos, m.index)));
-            frag.appendChild(makeLink(w, h, mines));
-            frag.appendChild(makeDensitySpan(w, h, mines));
+            frag.appendChild(makeLink(w, h, mines, mode));
+            if (mode === 2) frag.appendChild(makeDensitySpan(w, h, mines));
             pos = m.index + full.length;
         }
         if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
@@ -254,13 +315,17 @@
         if (!m) return;
 
         const [, w, h, mines] = m;
+        const mode = getBoardLinksMode();
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
         a.setAttribute(PROCESSED, '1');
+        if (mode === 1) {
+            a.title = `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`;
+        }
 
         const next = a.nextSibling;
         const alreadyHasDensity =
             next?.nodeType === Node.ELEMENT_NODE && next.classList.contains('ms-density');
-        if (!alreadyHasDensity && a.parentNode) {
+        if (mode === 2 && !alreadyHasDensity && a.parentNode) {
             a.parentNode.insertBefore(makeDensitySpan(w, h, mines), next);
         }
     }
@@ -470,7 +535,7 @@
                 if (stats) {
                     const span = document.createElement('span');
                     span.className = 'help';
-                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()} ${t('eventStatsPerDay')}`);
+                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()}${t('eventStatsPerDay')}`);
 
                     const s = document.createElement('strong');
                     s.textContent = stats.est.toLocaleString();
@@ -901,8 +966,15 @@
         const FEATURES = [
             {
                 key: FEAT_BOARD_LINKS_KEY,
+                type: 'select',
                 label: t('featBoardLinks'),
                 desc: t('featBoardLinksDesc'),
+                options: [
+                    { value: '0', label: t('boardLinksOptDisabled') },
+                    { value: '1', label: t('boardLinksOptLinks') },
+                    { value: '2', label: t('boardLinksOptDensity') },
+                ],
+                defaultValue: '1',
             },
             {
                 key: FEAT_EVENT_STATS_KEY,
@@ -942,7 +1014,7 @@
             titleRow.append(titleLabelCol, titleValCol);
             section.appendChild(titleRow);
 
-            FEATURES.forEach(({ key, label, desc }) => {
+            FEATURES.forEach(({ key, label, desc, type, options, defaultValue }) => {
                 const group = document.createElement('div');
                 group.className = 'form-group';
 
@@ -951,24 +1023,47 @@
                 const valueCol = document.createElement('div');
                 valueCol.className = 'col-xs-8';
 
-                const lbl = document.createElement('label');
-                lbl.className = 'normal cursor-pointer';
-
-                const chk = document.createElement('input');
-                chk.type = 'checkbox';
-                chk.checked = featEnabled(key);
-                chk.addEventListener('change', function () {
-                    localStorage.setItem(key, this.checked ? '1' : '0');
-                });
-
                 const helpIcon = document.createElement('i');
                 helpIcon.className = 'fa fa-question-circle-o gray help';
                 helpIcon.setAttribute('data-original-title', desc);
                 helpIcon.title = '';
                 helpIcon.style.marginLeft = '4px';
 
-                lbl.append(chk, '\u00a0\u00a0' + label + '\u00a0\u00a0', helpIcon);
-                valueCol.appendChild(lbl);
+                if (type === 'select') {
+                    labelCol.textContent = label;
+                    const storedVal = localStorage.getItem(key);
+                    const validValues = options.map(o => o.value);
+                    const currentVal = validValues.includes(storedVal) ? storedVal : defaultValue;
+                    const sel = document.createElement('select');
+                    sel.className = 'settings-select form-control';
+                    sel.style.cssText = 'display:inline-block;width:auto;';
+                    options.forEach(({ value, label: optLabel }) => {
+                        const opt = document.createElement('option');
+                        opt.value = value;
+                        opt.textContent = optLabel;
+                        if (value === currentVal) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                    sel.addEventListener('change', function () {
+                        localStorage.setItem(key, this.value);
+                    });
+                    const wrap = document.createElement('div');
+                    wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+                    wrap.append(sel, helpIcon);
+                    valueCol.append(wrap);
+                } else {
+                    const lbl = document.createElement('label');
+                    lbl.className = 'normal cursor-pointer';
+                    const chk = document.createElement('input');
+                    chk.type = 'checkbox';
+                    chk.checked = featEnabled(key);
+                    chk.addEventListener('change', function () {
+                        localStorage.setItem(key, this.checked ? '1' : '0');
+                    });
+                    lbl.append(chk, '\u00a0\u00a0' + label + '\u00a0\u00a0', helpIcon);
+                    valueCol.appendChild(lbl);
+                }
+
                 group.append(labelCol, valueCol);
                 section.appendChild(group);
             });
@@ -1003,10 +1098,10 @@
     }
 
     function init() {
-        if (featEnabled(FEAT_BOARD_LINKS_KEY)) walk(document.body);
+        if (getBoardLinksMode() !== 0) walk(document.body);
 
         new MutationObserver(mutations => {
-            if (!featEnabled(FEAT_BOARD_LINKS_KEY)) return;
+            if (getBoardLinksMode() === 0) return;
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
         }).observe(document.body, { childList: true, subtree: true });
 
