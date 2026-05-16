@@ -1,6 +1,6 @@
 # WoM Helper
 
-[![EN](https://img.shields.io/badge/EN-gray)](../README.md) [![ZH-CN](https://img.shields.io/badge/ZH--CN-gray)](./README.zh-CN.md) [![JA](https://img.shields.io/badge/JA-gray)](./README.ja.md) ![RU](https://img.shields.io/badge/RU-blue) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
 Пользовательский скрипт Tampermonkey для [minesweeper.online](https://minesweeper.online/), улучшающий отображение конфигурации поля, добавляющий режим «Без флагов», показывающий прогноз очков события на странице событий, включающий автоматический поиск соперника на странице PvP, добавляющий быстрые однокнопочные действия на странице квестов и позволяющий включать и отключать каждую функцию на странице настроек.
 

@@ -1,6 +1,6 @@
 # WoM Helper
 
-[![EN](https://img.shields.io/badge/EN-gray)](../README.md) ![ZH-CN](https://img.shields.io/badge/ZH--CN-blue) [![JA](https://img.shields.io/badge/JA-gray)](./README.ja.md) [![RU](https://img.shields.io/badge/RU-gray)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
 适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能，并支持在设置页面单独开关每项功能。
 

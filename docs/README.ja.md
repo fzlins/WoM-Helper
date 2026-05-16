@@ -1,6 +1,6 @@
 # WoM Helper
 
-[![EN](https://img.shields.io/badge/EN-gray)](../README.md) [![ZH-CN](https://img.shields.io/badge/ZH--CN-gray)](./README.zh-CN.md) ![JA](https://img.shields.io/badge/JA-blue) [![RU](https://img.shields.io/badge/RU-gray)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
 [minesweeper.online](https://minesweeper.online/) 向けの Tampermonkey ユーザースクリプトです。ボード設定の表示を強化し、ノーフラッグモードを追加し、イベントページにイベントスコア予測を表示し、PvP ページに対戦相手自動検索機能を追加し、クエストページにワンクリックショートカットを提供し、設定ページから各機能の有効・無効を切り替えることができます。
 

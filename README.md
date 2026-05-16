@@ -1,6 +1,6 @@
 # WoM Helper
 
-![EN](https://img.shields.io/badge/EN-blue) [![ZH-CN](https://img.shields.io/badge/ZH--CN-gray)](./docs/README.zh-CN.md) [![JA](https://img.shields.io/badge/JA-gray)](./docs/README.ja.md) [![RU](https://img.shields.io/badge/RU-gray)](./docs/README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./docs/README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./docs/README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
 A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and lets you toggle each feature from the Settings page.
 
