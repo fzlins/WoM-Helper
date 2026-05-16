@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.8.1
+// @version      1.9.0
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -29,6 +29,132 @@
     /** Returns true if a feature is enabled (default: true when key is absent). */
     function featEnabled(key) {
         return localStorage.getItem(key) !== '0';
+    }
+
+    // ── i18n ───────────────────────────────────────────────────────────────
+
+    /** Returns the two-letter language code for the current page, e.g. 'de', 'cn', or 'en'. */
+    function getLang() {
+        const m = /^\/([a-z]{2})(?:\/|$)/.exec(location.pathname);
+        return m ? m[1] : 'en';
+    }
+
+    const STRINGS = {
+        en: {
+            featBoardLinks: 'Board links & mine density',
+            featBoardLinksDesc: 'Converts WxH/M board-size text into clickable links and shows the mine density percentage.',
+            featEventStats: 'Event score projection',
+            featEventStatsDesc: 'Adds a projected end-of-event score column to the events leaderboard.',
+            featQuestCollect: 'Quest collect-all',
+            featQuestCollectDesc: 'Adds a one-click button to collect all available rewards in each quest table.',
+            featMyRank: 'My-rank auto-scroll',
+            featMyRankDesc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
+        },
+        de: {
+            featBoardLinks: 'Spielfeld-Links & Minendichte',
+            featBoardLinksDesc: 'Konvertiert WxH/M-Feldtexte in anklickbare Links und zeigt den Minendichte-Prozentsatz an.',
+            featEventStats: 'Event-Punkteprojektion',
+            featEventStatsDesc: 'Fügt der Event-Rangliste eine Spalte mit den prognostizierten Endpunkten hinzu.',
+            featQuestCollect: 'Alle Quests einsammeln',
+            featQuestCollectDesc: 'Fügt eine Schaltfläche hinzu, um alle verfügbaren Belohnungen in jeder Quest-Tabelle mit einem Klick einzusammeln.',
+            featMyRank: 'Automatischer Rang-Scroll',
+            featMyRankDesc: 'Scrollt die Rangliste automatisch zur eigenen Rangzeile, sobald der Rang geladen oder geändert wird.',
+        },
+        ru: {
+            featBoardLinks: 'Ссылки на поле & плотность мин',
+            featBoardLinksDesc: 'Преобразует текст формата WxH/M в кликабельные ссылки и показывает процент плотности мин.',
+            featEventStats: 'Прогноз очков события',
+            featEventStatsDesc: 'Добавляет столбец с прогнозируемыми итоговыми очками в таблицу лидеров события.',
+            featQuestCollect: 'Забрать все награды',
+            featQuestCollectDesc: 'Добавляет кнопку для получения всех доступных наград в каждой таблице заданий одним кликом.',
+            featMyRank: 'Авто-прокрутка к рангу',
+            featMyRankDesc: 'Автоматически прокручивает таблицу лидеров до вашей строки ранга при загрузке или изменении ранга.',
+        },
+        es: {
+            featBoardLinks: 'Enlaces de tablero & densidad de minas',
+            featBoardLinksDesc: 'Convierte el texto WxH/M en enlaces clicables y muestra el porcentaje de densidad de minas.',
+            featEventStats: 'Proyección de puntuación del evento',
+            featEventStatsDesc: 'Añade una columna de puntuación proyectada al final del evento en la tabla de clasificación.',
+            featQuestCollect: 'Recolectar todas las misiones',
+            featQuestCollectDesc: 'Añade un botón de un clic para recolectar todas las recompensas disponibles en cada tabla de misiones.',
+            featMyRank: 'Auto-desplazamiento a mi rango',
+            featMyRankDesc: 'Desplaza automáticamente la tabla de clasificación a tu fila de rango cuando se carga o cambia.',
+        },
+        pt: {
+            featBoardLinks: 'Links de tabuleiro & densidade de minas',
+            featBoardLinksDesc: 'Converte o texto WxH/M em links clicáveis e exibe a porcentagem de densidade de minas.',
+            featEventStats: 'Projeção de pontuação do evento',
+            featEventStatsDesc: 'Adiciona uma coluna de pontuação projetada ao final do evento na tabela de classificação.',
+            featQuestCollect: 'Coletar todas as missões',
+            featQuestCollectDesc: 'Adiciona um botão de um clique para coletar todas as recompensas disponíveis em cada tabela de missões.',
+            featMyRank: 'Rolagem automática para minha classificação',
+            featMyRankDesc: 'Rola automaticamente a tabela de classificação para sua linha de classificação quando o ranking é carregado ou alterado.',
+        },
+        it: {
+            featBoardLinks: 'Link campo & densità mine',
+            featBoardLinksDesc: 'Converte il testo WxH/M in link cliccabili e mostra la percentuale di densità delle mine.',
+            featEventStats: 'Proiezione punteggio evento',
+            featEventStatsDesc: 'Aggiunge una colonna con il punteggio previsto a fine evento nella classifica.',
+            featQuestCollect: 'Raccolta quest completa',
+            featQuestCollectDesc: 'Aggiunge un pulsante per raccogliere tutte le ricompense disponibili in ogni tabella delle quest con un clic.',
+            featMyRank: 'Auto-scroll al mio grado',
+            featMyRankDesc: 'Scorre automaticamente la classifica fino alla tua riga di grado quando il grado viene caricato o cambia.',
+        },
+        fr: {
+            featBoardLinks: 'Liens de plateau & densité de mines',
+            featBoardLinksDesc: 'Convertit le texte WxH/M en liens cliquables et affiche le pourcentage de densité de mines.',
+            featEventStats: 'Projection du score d\'événement',
+            featEventStatsDesc: 'Ajoute une colonne de score projeté en fin d\'événement au tableau de classement.',
+            featQuestCollect: 'Collecte de quêtes en masse',
+            featQuestCollectDesc: 'Ajoute un bouton en un clic pour collecter toutes les récompenses disponibles dans chaque tableau de quêtes.',
+            featMyRank: 'Défilement automatique vers mon rang',
+            featMyRankDesc: 'Fait défiler automatiquement le classement jusqu\'à votre ligne de rang lors du chargement ou d\'un changement.',
+        },
+        cn: {
+            featBoardLinks: '棋盘链接 & 雷密度',
+            featBoardLinksDesc: '将 WxH/M 格式的棋盘文字转换为可点击链接，并显示雷密度百分比。',
+            featEventStats: '活动分数预测',
+            featEventStatsDesc: '在活动排行榜中添加预测活动结束时总分的列。',
+            featQuestCollect: '一键领取全部任务',
+            featQuestCollectDesc: '在每个任务表格中添加一键领取所有可用奖励的按钮。',
+            featMyRank: '自动滚动到我的排名',
+            featMyRankDesc: '当排名加载或发生变化时，自动将排行榜滚动到您的位置。',
+        },
+        tw: {
+            featBoardLinks: '棋盤連結 & 地雷密度',
+            featBoardLinksDesc: '將 WxH/M 格式的棋盤文字轉換為可點擊連結，並顯示地雷密度百分比。',
+            featEventStats: '活動分數預測',
+            featEventStatsDesc: '在活動排行榜中新增預測活動結束時總分的欄位。',
+            featQuestCollect: '一鍵領取全部任務',
+            featQuestCollectDesc: '在每個任務表格中新增一鍵領取所有可用獎勵的按鈕。',
+            featMyRank: '自動捲動至我的排名',
+            featMyRankDesc: '當排名載入或變更時，自動將排行榜捲動至您的位置。',
+        },
+        ja: {
+            featBoardLinks: 'ボードリンク & 地雷密度',
+            featBoardLinksDesc: 'WxH/M 形式のボードテキストをクリック可能なリンクに変換し、地雷密度のパーセンテージを表示します。',
+            featEventStats: 'イベントスコア予測',
+            featEventStatsDesc: 'イベントリーダーボードにイベント終了時の予測スコア列を追加します。',
+            featQuestCollect: 'クエスト一括収集',
+            featQuestCollectDesc: '各クエストテーブルで利用可能なすべての報酬をワンクリックで収集するボタンを追加します。',
+            featMyRank: '自分のランクへ自動スクロール',
+            featMyRankDesc: 'ランクが読み込まれたり変更されたりすると、リーダーボードが自分のランク行に自動的にスクロールします。',
+        },
+        ko: {
+            featBoardLinks: '보드 링크 & 지뢰 밀도',
+            featBoardLinksDesc: 'WxH/M 형식의 보드 텍스트를 클릭 가능한 링크로 변환하고 지뢰 밀도 비율을 표시합니다.',
+            featEventStats: '이벤트 점수 예측',
+            featEventStatsDesc: '이벤트 리더보드에 이벤트 종료 시 예상 점수 열을 추가합니다.',
+            featQuestCollect: '퀘스트 전체 수집',
+            featQuestCollectDesc: '각 퀘스트 테이블에서 사용 가능한 모든 보상을 한 번에 수집하는 버튼을 추가합니다.',
+            featMyRank: '내 순위로 자동 스크롤',
+            featMyRankDesc: '순위가 로드되거나 변경될 때 리더보드가 내 순위 행으로 자동 스크롤됩니다.',
+        },
+    };
+
+    /** Returns the translated string for key, falling back to English. */
+    function t(key) {
+        return STRINGS[getLang()]?.[key] ?? STRINGS.en[key] ?? key;
     }
 
     // ── Board links & density ──────────────────────────────────────────────
@@ -742,23 +868,23 @@
         const FEATURES = [
             {
                 key: FEAT_BOARD_LINKS_KEY,
-                label: 'Board links & mine density',
-                desc: 'Converts WxH/M board-size text into clickable links and shows the mine density percentage.',
+                label: t('featBoardLinks'),
+                desc: t('featBoardLinksDesc'),
             },
             {
                 key: FEAT_EVENT_STATS_KEY,
-                label: 'Event score projection',
-                desc: 'Adds a projected end-of-event score column to the events leaderboard.',
+                label: t('featEventStats'),
+                desc: t('featEventStatsDesc'),
             },
             {
                 key: FEAT_QUEST_COLLECT_KEY,
-                label: 'Quest collect-all',
-                desc: 'Adds a one-click button to collect all available rewards in each quest table.',
+                label: t('featQuestCollect'),
+                desc: t('featQuestCollectDesc'),
             },
             {
                 key: FEAT_MY_RANK_KEY,
-                label: 'My-rank auto-scroll',
-                desc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
+                label: t('featMyRank'),
+                desc: t('featMyRankDesc'),
             },
         ];
 
