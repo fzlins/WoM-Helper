@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.7.1
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, and provides one-click shortcuts on the Quests page on minesweeper.online
+// @version      1.8.1
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -19,6 +19,17 @@
     const BOARD_RE = /(\d+)x(\d+)\/(\d+)/;
     // Marks nodes that have already been processed to prevent duplicate work
     const PROCESSED = 'data-ms-done';
+
+    // Feature enable/disable keys (stored in localStorage; default: enabled)
+    const FEAT_BOARD_LINKS_KEY = 'ms-feat-board-links';
+    const FEAT_EVENT_STATS_KEY = 'ms-feat-event-stats';
+    const FEAT_QUEST_COLLECT_KEY = 'ms-feat-quest-collect';
+    const FEAT_MY_RANK_KEY = 'ms-feat-my-rank';
+
+    /** Returns true if a feature is enabled (default: true when key is absent). */
+    function featEnabled(key) {
+        return localStorage.getItem(key) !== '0';
+    }
 
     // ── Board links & density ──────────────────────────────────────────────
 
@@ -339,7 +350,16 @@
             if (!table) return;
             const thead = table.querySelector('#stat_table_head');
             const tbody = table.querySelector('#stat_table_body');
-            if (!thead || !tbody || tbody === currentTbody) return;
+            if (!thead || !tbody) return;
+
+            if (!featEnabled(FEAT_EVENT_STATS_KEY)) {
+                thead.querySelector('th[data-ms-evt]')?.remove();
+                tbody.querySelectorAll('.' + COL_CLASS).forEach(el => el.remove());
+                if (tbodyObs) { tbodyObs.disconnect(); tbodyObs = null; currentTbody = null; }
+                return;
+            }
+
+            if (tbody === currentTbody) return;
             ensureHeaders(thead);
             fillBodyCols(tbody);
             attachTbodyObs(thead, tbody);
@@ -488,6 +508,12 @@
             if (!/\/quests(\/|$|\?)/.test(location.pathname)) return;
             const block = document.getElementById('QuestsBlock');
             if (!block) return;
+
+            if (!featEnabled(FEAT_QUEST_COLLECT_KEY)) {
+                block.querySelectorAll('.' + BTN_CLASS).forEach(el => el.remove());
+                return;
+            }
+
             block.querySelectorAll('table.table').forEach(processTable);
         }
 
@@ -512,6 +538,7 @@
         let spanObs = null;
 
         function tryClick() {
+            if (!featEnabled(FEAT_MY_RANK_KEY)) return;
             const span = document.getElementById('stat_my_rank');
             if (!span) return;
             const a = span.querySelector('a.position');
@@ -703,6 +730,110 @@
         if (content) processSellingContent(content);
     }
 
+    // ── Settings panel ─────────────────────────────────────────────────────
+
+    /**
+     * On /settings pages, appends a "WoM Helper" section inside #SettingsBlock
+     * with checkboxes to enable or disable each script feature.
+     * Changes are saved immediately to localStorage and take effect on the
+     * next page load.
+     */
+    function initSettings() {
+        const FEATURES = [
+            {
+                key: FEAT_BOARD_LINKS_KEY,
+                label: 'Board links & mine density',
+                desc: 'Converts WxH/M board-size text into clickable links and shows the mine density percentage.',
+            },
+            {
+                key: FEAT_EVENT_STATS_KEY,
+                label: 'Event score projection',
+                desc: 'Adds a projected end-of-event score column to the events leaderboard.',
+            },
+            {
+                key: FEAT_QUEST_COLLECT_KEY,
+                label: 'Quest collect-all',
+                desc: 'Adds a one-click button to collect all available rewards in each quest table.',
+            },
+            {
+                key: FEAT_MY_RANK_KEY,
+                label: 'My-rank auto-scroll',
+                desc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
+            },
+        ];
+
+        function tryInsert() {
+            if (!/\/settings(\/|$|\?)/.test(location.pathname)) return;
+            const block = document.getElementById('SettingsBlock');
+            if (!block || document.getElementById('ms-settings-section')) return;
+
+            const section = document.createElement('div');
+            section.id = 'ms-settings-section';
+
+            section.appendChild(document.createElement('hr'));
+
+            // "WoM Helper" heading row
+            const titleRow = document.createElement('div');
+            titleRow.className = 'form-group';
+            const titleLabelCol = document.createElement('label');
+            titleLabelCol.className = 'col-xs-4 control-label';
+            const titleValCol = document.createElement('div');
+            titleValCol.className = 'col-xs-8 bold';
+            titleValCol.textContent = 'WoM Helper';
+            titleRow.append(titleLabelCol, titleValCol);
+            section.appendChild(titleRow);
+
+            FEATURES.forEach(({ key, label, desc }) => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                const labelCol = document.createElement('label');
+                labelCol.className = 'col-xs-4 control-label';
+                const valueCol = document.createElement('div');
+                valueCol.className = 'col-xs-8';
+
+                const lbl = document.createElement('label');
+                lbl.className = 'normal cursor-pointer';
+
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.checked = featEnabled(key);
+                chk.addEventListener('change', function () {
+                    localStorage.setItem(key, this.checked ? '1' : '0');
+                });
+
+                const helpIcon = document.createElement('i');
+                helpIcon.className = 'fa fa-question-circle-o gray help';
+                helpIcon.setAttribute('data-original-title', desc);
+                helpIcon.title = '';
+                helpIcon.style.marginLeft = '4px';
+
+                lbl.append(chk, '\u00a0\u00a0' + label + '\u00a0\u00a0', helpIcon);
+                valueCol.appendChild(lbl);
+                group.append(labelCol, valueCol);
+                section.appendChild(group);
+            });
+
+            const formHoriz = block.querySelector('.form-horizontal');
+            const container = formHoriz || block;
+            const hrs = [...container.querySelectorAll(':scope > hr')];
+            const lastHr = hrs[hrs.length - 1];
+            if (lastHr) {
+                container.insertBefore(section, lastHr);
+            } else {
+                container.appendChild(section);
+            }
+
+            // Initialise Bootstrap 3 tooltips on the injected help icons
+            if (window.jQuery?.fn.tooltip) {
+                window.jQuery(section.querySelectorAll('.help')).tooltip({ container: 'body' });
+            }
+        }
+
+        new MutationObserver(tryInsert).observe(document.body, { childList: true, subtree: true });
+        tryInsert();
+    }
+
     // ── Entry point ────────────────────────────────────────────────────────
 
     function initPageFeatures() {
@@ -713,16 +844,19 @@
     }
 
     function init() {
-        walk(document.body);
+        if (featEnabled(FEAT_BOARD_LINKS_KEY)) walk(document.body);
+
+        new MutationObserver(mutations => {
+            if (!featEnabled(FEAT_BOARD_LINKS_KEY)) return;
+            for (const { addedNodes } of mutations) addedNodes.forEach(walk);
+        }).observe(document.body, { childList: true, subtree: true });
+
         initPageFeatures();
         initEventStats();
         initQuestCollect();
         initMyRankClick();
+        initSettings();
         // initSellMaxBtn(); // DISABLED: see initSellMaxBtn() above
-
-        new MutationObserver(mutations => {
-            for (const { addedNodes } of mutations) addedNodes.forEach(walk);
-        }).observe(document.body, { childList: true, subtree: true });
 
         // Detect SPA navigation (pushState / replaceState / back-forward)
         const _push = history.pushState.bind(history);
