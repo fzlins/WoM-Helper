@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.10.1
+// @version      1.11.0
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -25,6 +25,8 @@
     const FEAT_EVENT_STATS_KEY = 'ms-feat-event-stats';
     const FEAT_QUEST_COLLECT_KEY = 'ms-feat-quest-collect';
     const FEAT_MY_RANK_KEY = 'ms-feat-my-rank';
+    const FEAT_NF_KEY = 'ms-feat-nf';
+    const FEAT_AUTO_DUEL_KEY = 'ms-feat-auto-duel';
 
     /** Returns true if a feature is enabled (default: true when key is absent). */
     function featEnabled(key) {
@@ -64,6 +66,10 @@
             boardLinksOptLinks: 'Board links',
             boardLinksOptDensity: 'Board links & density',
             boardLinksDensityLabel: 'Mine density:',
+            featNF: 'No-Flag toggle',
+            featNFDesc: 'Adds a No-Flag checkbox to the game page that disables right-click flagging on the board.',
+            featAutoDuel: 'Auto-find PvP opponent',
+            featAutoDuelDesc: 'Adds an Auto checkbox on the PvP page that automatically re-clicks the find opponent button.',
         },
         de: {
             featBoardLinks: 'Spielfeld-Links & Minendichte',
@@ -81,6 +87,10 @@
             boardLinksOptLinks: 'Spielfeld-Links',
             boardLinksOptDensity: 'Spielfeld-Links & Minendichte',
             boardLinksDensityLabel: 'Minendichte:',
+            featNF: 'No-Flag-Schalter',
+            featNFDesc: 'Fügt eine No-Flag-Checkbox auf der Spielseite hinzu, die das Rechtsklick-Markieren deaktiviert.',
+            featAutoDuel: 'Gegner automatisch suchen',
+            featAutoDuelDesc: 'Fügt auf der PvP-Seite eine Auto-Checkbox hinzu, die automatisch erneut auf die Suche-Schaltfläche klickt.',
         },
         ru: {
             featBoardLinks: 'Ссылки на поле & плотность мин',
@@ -98,6 +108,10 @@
             boardLinksOptLinks: 'Ссылки на поле',
             boardLinksOptDensity: 'Ссылки & плотность мин',
             boardLinksDensityLabel: 'Плотность мин:',
+            featNF: 'Переключатель No-Flag',
+            featNFDesc: 'Добавляет флажок No-Flag на игровой странице, отключающий установку флажков правой кнопкой мыши.',
+            featAutoDuel: 'Авто-поиск соперника',
+            featAutoDuelDesc: 'Добавляет флажок Auto на странице PvP, который автоматически нажимает кнопку поиска соперника.',
         },
         es: {
             featBoardLinks: 'Enlaces de tablero & densidad de minas',
@@ -115,6 +129,10 @@
             boardLinksOptLinks: 'Solo enlaces',
             boardLinksOptDensity: 'Enlaces & densidad',
             boardLinksDensityLabel: 'Densidad de minas:',
+            featNF: 'Interruptor No-Flag',
+            featNFDesc: 'Añade una casilla No-Flag en la página del juego que desactiva el marcado con clic derecho.',
+            featAutoDuel: 'Buscar rival automáticamente',
+            featAutoDuelDesc: 'Añade una casilla Auto en la página PvP que hace clic automáticamente en el botón de buscar rival.',
         },
         pt: {
             featBoardLinks: 'Links de tabuleiro & densidade de minas',
@@ -132,6 +150,10 @@
             boardLinksOptLinks: 'Apenas links',
             boardLinksOptDensity: 'Links & densidade',
             boardLinksDensityLabel: 'Densidade de minas:',
+            featNF: 'Alternância No-Flag',
+            featNFDesc: 'Adiciona uma caixa No-Flag na página do jogo que desativa a marcação com clique direito.',
+            featAutoDuel: 'Buscar adversário automaticamente',
+            featAutoDuelDesc: 'Adiciona uma caixa Auto na página PvP que clica automaticamente no botão de buscar adversário.',
         },
         it: {
             featBoardLinks: 'Link campo & densità mine',
@@ -149,6 +171,10 @@
             boardLinksOptLinks: 'Solo link',
             boardLinksOptDensity: 'Link & densità',
             boardLinksDensityLabel: 'Densità mine:',
+            featNF: 'Interruttore No-Flag',
+            featNFDesc: 'Aggiunge una casella No-Flag nella pagina di gioco che disabilita la marcatura con clic destro.',
+            featAutoDuel: 'Trova avversario automaticamente',
+            featAutoDuelDesc: 'Aggiunge una casella Auto nella pagina PvP che fa clic automaticamente sul pulsante di ricerca avversario.',
         },
         fr: {
             featBoardLinks: 'Liens de plateau & densité de mines',
@@ -166,6 +192,10 @@
             boardLinksOptLinks: 'Liens seulement',
             boardLinksOptDensity: 'Liens & densité',
             boardLinksDensityLabel: 'Densité de mines :',
+            featNF: 'Interrupteur No-Flag',
+            featNFDesc: "Ajoute une case No-Flag sur la page de jeu qui désactive le marquage par clic droit.",
+            featAutoDuel: "Recherche automatique d'adversaire",
+            featAutoDuelDesc: "Ajoute une case Auto sur la page PvP qui clique automatiquement sur le bouton de recherche d'adversaire.",
         },
         cn: {
             featBoardLinks: '棋盘链接 & 雷密度',
@@ -183,6 +213,10 @@
             boardLinksOptLinks: '棋盘链接',
             boardLinksOptDensity: '棋盘链接 & 雷密度',
             boardLinksDensityLabel: '雷密度：',
+            featNF: '无插旗模式开关',
+            featNFDesc: '在游戏页面添加"无插旗"复选框，禁用右键插旗功能。',
+            featAutoDuel: '自动寻找 PvP 对手',
+            featAutoDuelDesc: '在 PvP 页面添加"自动"复选框，自动重新点击寻找对手按钮。',
         },
         tw: {
             featBoardLinks: '棋盤連結 & 地雷密度',
@@ -200,6 +234,10 @@
             boardLinksOptLinks: '棋盤連結',
             boardLinksOptDensity: '棋盤連結 & 地雷密度',
             boardLinksDensityLabel: '地雷密度：',
+            featNF: '無旗模式切換',
+            featNFDesc: '在遊戲頁面新增「無插旗」複選框，停用右鍵插旗功能。',
+            featAutoDuel: '自動尋找 PvP 對手',
+            featAutoDuelDesc: '在 PvP 頁面新增「自動」複選框，自動重新點擊尋找對手按鈕。',
         },
         ja: {
             featBoardLinks: 'ボードリンク & 地雷密度',
@@ -217,6 +255,10 @@
             boardLinksOptLinks: 'リンクのみ',
             boardLinksOptDensity: 'リンク & 地雷密度',
             boardLinksDensityLabel: '地雷密度：',
+            featNF: 'フラグなしトグル',
+            featNFDesc: 'ゲームページに「フラグなし」チェックボックスを追加し、右クリックによるフラグ設置を無効化します。',
+            featAutoDuel: 'PvP 対戦相手を自動検索',
+            featAutoDuelDesc: 'PvP ページに「自動」チェックボックスを追加し、対戦相手検索ボタンを自動的にクリックします。',
         },
         ko: {
             featBoardLinks: '보드 링크 & 지뢰 밀도',
@@ -234,6 +276,10 @@
             boardLinksOptLinks: '링크만',
             boardLinksOptDensity: '링크 & 지뢰 밀도',
             boardLinksDensityLabel: '지뢰 밀도:',
+            featNF: '노 플래그 토글',
+            featNFDesc: '게임 페이지에 "노 플래그" 체크박스를 추가하여 우클릭 깃발 설치를 비활성화합니다.',
+            featAutoDuel: 'PvP 상대 자동 찾기',
+            featAutoDuelDesc: 'PvP 페이지에 "자동" 체크박스를 추가하여 상대 찾기 버튼을 자동으로 클릭합니다.',
         },
     };
 
@@ -991,6 +1037,16 @@
                 label: t('featMyRank'),
                 desc: t('featMyRankDesc'),
             },
+            {
+                key: FEAT_NF_KEY,
+                label: t('featNF'),
+                desc: t('featNFDesc'),
+            },
+            {
+                key: FEAT_AUTO_DUEL_KEY,
+                label: t('featAutoDuel'),
+                desc: t('featAutoDuelDesc'),
+            },
         ];
 
         function tryInsert() {
@@ -1092,9 +1148,9 @@
 
     function initPageFeatures() {
         const path = location.pathname;
-        if (/\/game(\/|$)/.test(path)) initNF();
+        if (/\/game(\/|$)/.test(path) && featEnabled(FEAT_NF_KEY)) initNF();
 
-        if (/\/pvp(\/|$|\?)/.test(path)) initAutoDuel();
+        if (/\/pvp(\/|$|\?)/.test(path) && featEnabled(FEAT_AUTO_DUEL_KEY)) initAutoDuel();
     }
 
     function init() {
