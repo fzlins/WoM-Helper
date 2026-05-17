@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.10.0
+// @version      1.10.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -59,7 +59,7 @@
             featMyRankDesc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
             questCollectAllBtn: 'Collect All',
             eventStatsHeader: 'Est. Total',
-            eventStatsPerDay: '/day',
+            eventStatsPerDay: 'Avg/day: ',
             boardLinksOptDisabled: 'Disabled',
             boardLinksOptLinks: 'Board links',
             boardLinksOptDensity: 'Board links & density',
@@ -76,7 +76,7 @@
             featMyRankDesc: 'Scrollt die Rangliste automatisch zur eigenen Rangzeile, sobald der Rang geladen oder geändert wird.',
             questCollectAllBtn: 'Alle abholen',
             eventStatsHeader: 'Est. Gesamt',
-            eventStatsPerDay: '/Tag',
+            eventStatsPerDay: 'Ø/Tag: ',
             boardLinksOptDisabled: 'Deaktiviert',
             boardLinksOptLinks: 'Spielfeld-Links',
             boardLinksOptDensity: 'Spielfeld-Links & Minendichte',
@@ -93,7 +93,7 @@
             featMyRankDesc: 'Автоматически прокручивает таблицу лидеров до вашей строки ранга при загрузке или изменении ранга.',
             questCollectAllBtn: 'Получить все',
             eventStatsHeader: 'Прогноз итога',
-            eventStatsPerDay: '/день',
+            eventStatsPerDay: 'Ср/день: ',
             boardLinksOptDisabled: 'Отключено',
             boardLinksOptLinks: 'Ссылки на поле',
             boardLinksOptDensity: 'Ссылки & плотность мин',
@@ -110,7 +110,7 @@
             featMyRankDesc: 'Desplaza automáticamente la tabla de clasificación a tu fila de rango cuando se carga o cambia.',
             questCollectAllBtn: 'Recoger todo',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: '/día',
+            eventStatsPerDay: 'Prom./día: ',
             boardLinksOptDisabled: 'Desactivado',
             boardLinksOptLinks: 'Solo enlaces',
             boardLinksOptDensity: 'Enlaces & densidad',
@@ -127,7 +127,7 @@
             featMyRankDesc: 'Rola automaticamente a tabela de classificação para sua linha de classificação quando o ranking é carregado ou alterado.',
             questCollectAllBtn: 'Coletar tudo',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: '/dia',
+            eventStatsPerDay: 'Méd./dia: ',
             boardLinksOptDisabled: 'Desativado',
             boardLinksOptLinks: 'Apenas links',
             boardLinksOptDensity: 'Links & densidade',
@@ -144,7 +144,7 @@
             featMyRankDesc: 'Scorre automaticamente la classifica fino alla tua riga di grado quando il grado viene caricato o cambia.',
             questCollectAllBtn: 'Ritira tutto',
             eventStatsHeader: 'Totale prev.',
-            eventStatsPerDay: '/giorno',
+            eventStatsPerDay: 'Media/gg: ',
             boardLinksOptDisabled: 'Disabilitato',
             boardLinksOptLinks: 'Solo link',
             boardLinksOptDensity: 'Link & densità',
@@ -161,7 +161,7 @@
             featMyRankDesc: 'Fait défiler automatiquement le classement jusqu\'à votre ligne de rang lors du chargement ou d\'un changement.',
             questCollectAllBtn: 'Tout collecter',
             eventStatsHeader: 'Total est.',
-            eventStatsPerDay: '/jour',
+            eventStatsPerDay: 'Moy./jour : ',
             boardLinksOptDisabled: 'Désactivé',
             boardLinksOptLinks: 'Liens seulement',
             boardLinksOptDensity: 'Liens & densité',
@@ -178,7 +178,7 @@
             featMyRankDesc: '当排名加载或发生变化时，自动将排行榜滚动到您的位置。',
             questCollectAllBtn: '全部领取',
             eventStatsHeader: '预计总分',
-            eventStatsPerDay: '/天',
+            eventStatsPerDay: '平均每天：',
             boardLinksOptDisabled: '禁用',
             boardLinksOptLinks: '棋盘链接',
             boardLinksOptDensity: '棋盘链接 & 雷密度',
@@ -195,7 +195,7 @@
             featMyRankDesc: '當排名載入或變更時，自動將排行榜捲動至您的位置。',
             questCollectAllBtn: '全部領取',
             eventStatsHeader: '預計總分',
-            eventStatsPerDay: '/天',
+            eventStatsPerDay: '平均每天：',
             boardLinksOptDisabled: '停用',
             boardLinksOptLinks: '棋盤連結',
             boardLinksOptDensity: '棋盤連結 & 地雷密度',
@@ -212,7 +212,7 @@
             featMyRankDesc: 'ランクが読み込まれたり変更されたりすると、リーダーボードが自分のランク行に自動的にスクロールします。',
             questCollectAllBtn: '一括受け取り',
             eventStatsHeader: '予想合計',
-            eventStatsPerDay: '/日',
+            eventStatsPerDay: '平均/日：',
             boardLinksOptDisabled: '無効',
             boardLinksOptLinks: 'リンクのみ',
             boardLinksOptDensity: 'リンク & 地雷密度',
@@ -229,7 +229,7 @@
             featMyRankDesc: '순위가 로드되거나 변경될 때 리더보드가 내 순위 행으로 자동 스크롤됩니다.',
             questCollectAllBtn: '전부 수집',
             eventStatsHeader: '예상 합계',
-            eventStatsPerDay: '/일',
+            eventStatsPerDay: '일 평균: ',
             boardLinksOptDisabled: '비활성화',
             boardLinksOptLinks: '링크만',
             boardLinksOptDensity: '링크 & 지뢰 밀도',
@@ -535,7 +535,7 @@
                 if (stats) {
                     const span = document.createElement('span');
                     span.className = 'help';
-                    span.setAttribute('data-original-title', `${stats.avgD.toLocaleString()}${t('eventStatsPerDay')}`);
+                    span.setAttribute('data-original-title', `${t('eventStatsPerDay')}${stats.avgD.toLocaleString()}${icon?.alt ? ' ' + icon.alt : ''}`);
 
                     const s = document.createElement('strong');
                     s.textContent = stats.est.toLocaleString();
