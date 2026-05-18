@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.12.0
+// @version      1.12.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -947,6 +947,10 @@
         function processSellingContent(content) {
             if (!featEnabled(FEAT_SELL_MAX_KEY)) return;
 
+            const table = content.querySelector('table');
+            if (!table) return;
+            if (table.querySelectorAll('thead tr th').length < 4) return;
+
             // Per-row max links (column 2)
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 if (input.getAttribute(PROCESSED)) return;
@@ -983,9 +987,6 @@
                 const coinIcon = priceInput.closest('td')?.querySelector('img');
                 (coinIcon || priceInput).insertAdjacentElement('afterend', a);
             });
-
-            const table = content.querySelector('table');
-            if (!table) return;
 
             // Column 2 header: fill-all ▲ link
             const th2 = table.querySelector('thead tr th:nth-child(2)');
