@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.12.2
+// @version      1.12.3
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -329,14 +329,22 @@
         return `(${densityPct(w, h, mines)})`;
     }
 
-    /** Creates an <a> linking to the given board configuration. */
+    /** Creates an <a> linking to the given board configuration.
+     *  For mode 1, wraps the link text in an <abbr class="tooltip-extra"> so hovering
+     *  shows a help cursor (cursor:help) and a Bootstrap tooltip with the mine density. */
     function makeLink(w, h, mines, mode) {
         const a = document.createElement('a');
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
-        a.textContent = `${w}x${h}/${mines}`;
         a.setAttribute(PROCESSED, '1');
         if (mode === 1) {
-            a.title = `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`;
+            const abbr = document.createElement('abbr');
+            abbr.className = 'tooltip-extra';
+            abbr.setAttribute('data-original-title', `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`);
+            abbr.title = '';
+            abbr.textContent = `${w}x${h}/${mines}`;
+            a.appendChild(abbr);
+        } else {
+            a.textContent = `${w}x${h}/${mines}`;
         }
         return a;
     }
@@ -361,16 +369,22 @@
 
         const mode = getBoardLinksMode();
         const frag = document.createDocumentFragment();
+        const tooltipElems = [];
         let pos = 0;
         for (const m of matches) {
             const [full, w, h, mines] = m;
             if (m.index > pos) frag.appendChild(document.createTextNode(text.slice(pos, m.index)));
-            frag.appendChild(makeLink(w, h, mines, mode));
+            const link = makeLink(w, h, mines, mode);
+            frag.appendChild(link);
+            if (mode === 1) tooltipElems.push(link.querySelector('abbr'));
             if (mode === 2) frag.appendChild(makeDensitySpan(w, h, mines));
             pos = m.index + full.length;
         }
         if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
         parent.replaceChild(frag, node);
+        if (tooltipElems.length && window.jQuery?.fn.tooltip) {
+            window.jQuery(tooltipElems).tooltip({ container: 'body' });
+        }
     }
 
     /**
@@ -388,7 +402,18 @@
         a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
         a.setAttribute(PROCESSED, '1');
         if (mode === 1) {
-            a.title = `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`;
+            if (!a.querySelector('abbr.tooltip-extra')) {
+                const abbr = document.createElement('abbr');
+                abbr.className = 'tooltip-extra';
+                abbr.setAttribute('data-original-title', `${t('boardLinksDensityLabel')} ${densityPct(+w, +h, +mines)}`);
+                abbr.title = '';
+                abbr.textContent = a.textContent;
+                a.textContent = '';
+                a.appendChild(abbr);
+                if (window.jQuery?.fn.tooltip) {
+                    window.jQuery(abbr).tooltip({ container: 'body' });
+                }
+            }
         }
 
         const next = a.nextSibling;
