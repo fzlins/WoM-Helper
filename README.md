@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./docs/README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./docs/README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and lets you toggle each feature from the Settings page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, and lets you toggle each feature from the Settings page.
 
 ## Settings
 
@@ -12,6 +12,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - Event score projection
 - Quest collect-all
 - My-rank auto-scroll
+- Sell max & market price
 
 ## Features
 
@@ -22,6 +23,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - **Auto-scroll to my rank** — When the leaderboard loads or your rank changes after a stats update, the page automatically scrolls to your position in the table. Navigating between leaderboard pages does not trigger this.
 - **Auto-find opponent (PvP)** — On the [PvP](https://minesweeper.online/pvp) page, an **Auto** checkbox appears next to the *Find Opponent* button. When checked, the button is pressed automatically whenever it becomes available — on page load, after each match, or after a timeout. Click *Cancel* to stop. The setting is remembered between sessions.
 - **Quest collect-all** — On the [Quests](https://minesweeper.online/quests) page, a *Collect All* button appears at the top of each quest category whenever rewards are ready to collect. One click claims every available reward in that section; the button disappears once all are claimed.
+- **Sell max & market price** — On the [Marketplace](https://minesweeper.online/marketplace) page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
 
 ## Installation
 

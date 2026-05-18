@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能，并支持在设置页面单独开关每项功能。
+适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能、在市场出售弹窗中提供最大出售和市场价格辅助，并支持在设置页面单独开关每项功能。
 
 ## 设置
 
@@ -12,6 +12,7 @@
 - 活动积分预测
 - 一键领取任务奖励
 - 自动滚动到我的排名
+- 最大出售与市场价格
 
 ## 功能
 
@@ -22,7 +23,7 @@
 - **自动滚动到我的排名** — 排行榜加载完毕或积分刷新后排名变化时，页面会自动滚动到你在排行榜中的位置。翻页操作不会触发此行为。
 - **自动寻找对手（PvP）** — 在 [PvP 页面](https://minesweeper.online/pvp)的 *寻找对手* 按钮旁会出现一个 **Auto** 复选框。勾选后，每当按钮可用时（页面加载时、每场对局或超时结束后）都会自动点击。点击 *取消* 可随时停止。该设置在会话之间自动记忆。
 - **一键领取任务奖励** — 在[任务页面](https://minesweeper.online/quests)，当某类任务中有可领取的奖励时，该类别顶部会出现一个 *全部领取* 按钮，点击一次即可领取其中所有可领取奖励；全部领取完毕后按钮自动消失。
-
+- **最大出售与市场价格** — 在[市场页面](https://minesweeper.online/marketplace)的出售弹窗中，每行将新增两个辅助：数量输入框旁的 **▲** 链接可一键填入您拥有的最大数量，价格输入框旁的 **🏷** 链接可通过站点 WebSocket 自动获取当前市场价格。表头链接可对所有行批量操作。
 ## 安装
 
 **方式一 — Greasy Fork（推荐）**

@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.11.0
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, and adds a helper settings panel on minesweeper.online
+// @version      1.12.0
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -27,6 +27,7 @@
     const FEAT_MY_RANK_KEY = 'ms-feat-my-rank';
     const FEAT_NF_KEY = 'ms-feat-nf';
     const FEAT_AUTO_DUEL_KEY = 'ms-feat-auto-duel';
+    const FEAT_SELL_MAX_KEY = 'ms-feat-sell-max';
 
     /** Returns true if a feature is enabled (default: true when key is absent). */
     function featEnabled(key) {
@@ -70,6 +71,8 @@
             featNFDesc: 'Adds a No-Flag checkbox to the game page that disables right-click flagging on the board.',
             featAutoDuel: 'Auto-find PvP opponent',
             featAutoDuelDesc: 'Adds an Auto checkbox on the PvP page that automatically re-clicks the find opponent button.',
+            featSellMax: 'Sell max & market price',
+            featSellMaxDesc: 'In the Sell modal on the Marketplace page, adds a ▲ button next to each quantity field to fill it with the maximum you own, and a 🏷 button next to each price field to auto-fetch the current market price.',
         },
         de: {
             featBoardLinks: 'Spielfeld-Links & Minendichte',
@@ -91,6 +94,8 @@
             featNFDesc: 'Fügt eine No-Flag-Checkbox auf der Spielseite hinzu, die das Rechtsklick-Markieren deaktiviert.',
             featAutoDuel: 'Gegner automatisch suchen',
             featAutoDuelDesc: 'Fügt auf der PvP-Seite eine Auto-Checkbox hinzu, die automatisch erneut auf die Suche-Schaltfläche klickt.',
+            featSellMax: 'Max. verkaufen & Marktpreis',
+            featSellMaxDesc: 'Im Verkaufsdialog auf der Marktplatz-Seite wird eine ▲-Schaltfläche neben jedem Mengenfeld hinzugefügt, um die maximal besessene Menge einzutragen, sowie eine 🏷-Schaltfläche neben jedem Preisfeld zum automatischen Abrufen des aktuellen Marktpreises.',
         },
         ru: {
             featBoardLinks: 'Ссылки на поле & плотность мин',
@@ -112,6 +117,8 @@
             featNFDesc: 'Добавляет флажок No-Flag на игровой странице, отключающий установку флажков правой кнопкой мыши.',
             featAutoDuel: 'Авто-поиск соперника',
             featAutoDuelDesc: 'Добавляет флажок Auto на странице PvP, который автоматически нажимает кнопку поиска соперника.',
+            featSellMax: 'Продать максимум & рыночная цена',
+            featSellMaxDesc: 'В диалоге продажи на странице Маркетплейса добавляет кнопку ▲ рядом с каждым полем количества для заполнения максимально возможного, и кнопку 🏷 рядом с полем цены для автоматического получения текущей рыночной цены.',
         },
         es: {
             featBoardLinks: 'Enlaces de tablero & densidad de minas',
@@ -133,6 +140,8 @@
             featNFDesc: 'Añade una casilla No-Flag en la página del juego que desactiva el marcado con clic derecho.',
             featAutoDuel: 'Buscar rival automáticamente',
             featAutoDuelDesc: 'Añade una casilla Auto en la página PvP que hace clic automáticamente en el botón de buscar rival.',
+            featSellMax: 'Vender el máximo & precio de mercado',
+            featSellMaxDesc: 'En el modal de venta de la página del Mercado, añade un botón ▲ junto a cada campo de cantidad para rellenar el máximo disponible, y un botón 🏷 junto a cada campo de precio para obtener automáticamente el precio de mercado actual.',
         },
         pt: {
             featBoardLinks: 'Links de tabuleiro & densidade de minas',
@@ -154,6 +163,8 @@
             featNFDesc: 'Adiciona uma caixa No-Flag na página do jogo que desativa a marcação com clique direito.',
             featAutoDuel: 'Buscar adversário automaticamente',
             featAutoDuelDesc: 'Adiciona uma caixa Auto na página PvP que clica automaticamente no botão de buscar adversário.',
+            featSellMax: 'Vender o máximo & preço de mercado',
+            featSellMaxDesc: 'No modal de venda da página do Mercado, adiciona um botão ▲ junto a cada campo de quantidade para preencher o máximo disponível, e um botão 🏷 junto a cada campo de preço para obter automaticamente o preço de mercado atual.',
         },
         it: {
             featBoardLinks: 'Link campo & densità mine',
@@ -175,6 +186,8 @@
             featNFDesc: 'Aggiunge una casella No-Flag nella pagina di gioco che disabilita la marcatura con clic destro.',
             featAutoDuel: 'Trova avversario automaticamente',
             featAutoDuelDesc: 'Aggiunge una casella Auto nella pagina PvP che fa clic automaticamente sul pulsante di ricerca avversario.',
+            featSellMax: 'Vendi il massimo & prezzo di mercato',
+            featSellMaxDesc: 'Nel modale di vendita della pagina Marketplace, aggiunge un pulsante ▲ accanto a ogni campo quantità per inserire il massimo disponibile, e un pulsante 🏷 accanto a ogni campo prezzo per recuperare automaticamente il prezzo di mercato attuale.',
         },
         fr: {
             featBoardLinks: 'Liens de plateau & densité de mines',
@@ -196,6 +209,8 @@
             featNFDesc: "Ajoute une case No-Flag sur la page de jeu qui désactive le marquage par clic droit.",
             featAutoDuel: "Recherche automatique d'adversaire",
             featAutoDuelDesc: "Ajoute une case Auto sur la page PvP qui clique automatiquement sur le bouton de recherche d'adversaire.",
+            featSellMax: 'Vendre le maximum & prix du marché',
+            featSellMaxDesc: "Dans la fenêtre de vente de la page Marketplace, ajoute un bouton ▲ à côté de chaque champ de quantité pour remplir le maximum disponible, et un bouton 🏷 à côté de chaque champ de prix pour récupérer automatiquement le prix du marché actuel.",
         },
         cn: {
             featBoardLinks: '棋盘链接 & 雷密度',
@@ -217,6 +232,8 @@
             featNFDesc: '在游戏页面添加"无插旗"复选框，禁用右键插旗功能。',
             featAutoDuel: '自动寻找 PvP 对手',
             featAutoDuelDesc: '在 PvP 页面添加"自动"复选框，自动重新点击寻找对手按钮。',
+            featSellMax: '最大出售 & 市场价格',
+            featSellMaxDesc: '在市场页面的出售弹窗中，每行数量输入框旁添加 ▲ 按钮以自动填入您拥有的最大数量，价格输入框旁添加 🏷 按钮以自动获取当前市场价格。',
         },
         tw: {
             featBoardLinks: '棋盤連結 & 地雷密度',
@@ -238,6 +255,8 @@
             featNFDesc: '在遊戲頁面新增「無插旗」複選框，停用右鍵插旗功能。',
             featAutoDuel: '自動尋找 PvP 對手',
             featAutoDuelDesc: '在 PvP 頁面新增「自動」複選框，自動重新點擊尋找對手按鈕。',
+            featSellMax: '最大出售 & 市場價格',
+            featSellMaxDesc: '在市場頁面的出售彈窗中，每行數量輸入框旁新增 ▲ 按鈕以自動填入您擁有的最大數量，價格輸入框旁新增 🏷 按鈕以自動取得目前市場價格。',
         },
         ja: {
             featBoardLinks: 'ボードリンク & 地雷密度',
@@ -259,6 +278,8 @@
             featNFDesc: 'ゲームページに「フラグなし」チェックボックスを追加し、右クリックによるフラグ設置を無効化します。',
             featAutoDuel: 'PvP 対戦相手を自動検索',
             featAutoDuelDesc: 'PvP ページに「自動」チェックボックスを追加し、対戦相手検索ボタンを自動的にクリックします。',
+            featSellMax: '最大売却 & 市場価格',
+            featSellMaxDesc: 'マーケットプレイスページの売却ダイアログで、各数量フィールドの横に所有する最大数量を入力する ▲ ボタンを追加し、各価格フィールドの横に現在の市場価格を自動取得する 🏷 ボタンを追加します。',
         },
         ko: {
             featBoardLinks: '보드 링크 & 지뢰 밀도',
@@ -280,6 +301,8 @@
             featNFDesc: '게임 페이지에 "노 플래그" 체크박스를 추가하여 우클릭 깃발 설치를 비활성화합니다.',
             featAutoDuel: 'PvP 상대 자동 찾기',
             featAutoDuelDesc: 'PvP 페이지에 "자동" 체크박스를 추가하여 상대 찾기 버튼을 자동으로 클릭합니다.',
+            featSellMax: '최대 판매 & 시장 가격',
+            featSellMaxDesc: '마켓플레이스 페이지의 판매 모달에서 각 수량 필드 옆에 최대 보유 수량을 자동 입력하는 ▲ 버튼을 추가하고, 각 가격 필드 옆에 현재 시장 가격을 자동으로 가져오는 🏷 버튼을 추가합니다.',
         },
     };
 
@@ -857,10 +880,6 @@
      * price input, then the popover is hidden.
      */
     function initSellMaxBtn() {
-        // DISABLED: Temporarily disabled pending review of minesweeper.online marketplace rules.
-        // To re-enable: remove the `return;` below and uncomment `initSellMaxBtn()` in init().
-        return;
-
         function fillAll(content) {
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 const max = input.getAttribute('max');
@@ -926,6 +945,8 @@
         }
 
         function processSellingContent(content) {
+            if (!featEnabled(FEAT_SELL_MAX_KEY)) return;
+
             // Per-row max links (column 2)
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 if (input.getAttribute(PROCESSED)) return;
@@ -1047,6 +1068,11 @@
                 label: t('featAutoDuel'),
                 desc: t('featAutoDuelDesc'),
             },
+            {
+                key: FEAT_SELL_MAX_KEY,
+                label: t('featSellMax'),
+                desc: t('featSellMaxDesc'),
+            },
         ];
 
         function tryInsert() {
@@ -1166,7 +1192,7 @@
         initQuestCollect();
         initMyRankClick();
         initSettings();
-        // initSellMaxBtn(); // DISABLED: see initSellMaxBtn() above
+        initSellMaxBtn();
 
         // Detect SPA navigation (pushState / replaceState / back-forward)
         const _push = history.pushState.bind(history);
