@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.13.0
+// @version      1.14.0
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -16,9 +16,11 @@
     'use strict';
 
     // WxH/M board-size pattern, e.g. 58x35/393
-    const BOARD_RE = /(\d+)x(\d+)\/(\d+)/;
-    // Marks nodes that have already been processed to prevent duplicate work
-    const PROCESSED = 'data-ms-done';
+    const BOARD_RE   = /(\d+)x(\d+)\/(\d+)/;
+    const BOARD_RE_G = /(\d+)x(\d+)\/(\d+)/g;
+    // Per-feature processed markers — kept separate to avoid cross-feature conflicts
+    const PROCESSED_BOARD = 'data-ms-board-done';
+    const PROCESSED_SELL  = 'data-ms-sell-done';
 
     // Feature enable/disable keys (stored in localStorage; default: enabled)
     const FEAT_BOARD_LINKS_KEY = 'ms-feat-board-links';
@@ -29,7 +31,19 @@
     const FEAT_AUTO_DUEL_KEY = 'ms-feat-auto-duel';
     const FEAT_SELL_MAX_KEY = 'ms-feat-sell-max';
 
-    /** Returns true if a feature is enabled (default: true when key is absent). */
+    // Named timing constants (avoids magic numbers scattered through the code)
+    const AUTO_DUEL_CLICK_DELAY   = 400;    // ms to wait for #start_duel_btn state to stabilize
+    const AUTO_DUEL_INITIAL_DELAY = 500;    // ms before first auto-click after checkbox injection
+    const MARKET_PRICE_TIMEOUT_MS = 5000;   // ms before giving up on WebSocket market price response
+    const PRICE_FETCH_GAP_MS      = 150;    // ms between sequential market price fetches (avoid WS throttling)
+    const MIN_ELAPSED_MS          = 60_000; // prevents div-by-zero at event period start
+    const EVENT_START_DAY         = 4;      // events begin on the 4th of each month
+
+    /**
+     * Returns true when the feature is enabled.
+     * Returns false only when the key is explicitly '0'; absent key defaults to true
+     * so all features are on out-of-the-box.
+     */
     function featEnabled(key) {
         return localStorage.getItem(key) !== '0';
     }
@@ -43,12 +57,6 @@
     }
 
     // ── i18n ───────────────────────────────────────────────────────────────
-
-    /** Returns the two-letter language code for the current page, e.g. 'de', 'cn', or 'en'. */
-    function getLang() {
-        const m = /^\/([a-z]{2})(?:\/|$)/.exec(location.pathname);
-        return m ? m[1] : 'en';
-    }
 
     const STRINGS = {
         en: {
@@ -306,18 +314,19 @@
         },
     };
 
+    // Computed once at startup — the language code and URL prefix don't change within a session.
+    const { _lang, _langPrefix } = (() => {
+        const m = /^\/([a-z]{2})(?:\/|$)/.exec(location.pathname);
+        const code = m ? m[1] : null;
+        return { _lang: code ?? 'en', _langPrefix: code ? '/' + code : '' };
+    })();
+
     /** Returns the translated string for key, falling back to English. */
     function t(key) {
-        return STRINGS[getLang()]?.[key] ?? STRINGS.en[key] ?? key;
+        return STRINGS[_lang]?.[key] ?? STRINGS.en[key] ?? key;
     }
 
     // ── Board links & density ──────────────────────────────────────────────
-
-    /** Returns the two-letter language prefix from the URL, e.g. '/cn', or ''. */
-    function getLangPrefix() {
-        const m = /^(\/[a-z]{2})(\/|$)/.exec(location.pathname);
-        return m ? m[1] : '';
-    }
 
     /** Returns a mine-density percentage string, e.g. '20.50%'. */
     function densityPct(w, h, mines) {
@@ -329,8 +338,8 @@
      *  shows a help cursor (cursor:help) and a Bootstrap tooltip with the mine density. */
     function makeLink(w, h, mines, mode) {
         const a = document.createElement('a');
-        a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
-        a.setAttribute(PROCESSED, '1');
+        a.href = `${_langPrefix}/start/${w}x${h}/${mines}`;
+        a.setAttribute(PROCESSED_BOARD, '1');
         if (mode === 1) {
             const abbr = document.createElement('abbr');
             abbr.className = 'tooltip-extra';
@@ -359,10 +368,10 @@
         if (!parent) return;
 
         const text = node.textContent;
-        const matches = [...text.matchAll(/(\d+)x(\d+)\/(\d+)/g)];
+        const matches = [...text.matchAll(BOARD_RE_G)];
         if (!matches.length) return;
 
-        const mode = getBoardLinksMode();
+        const mode = _boardLinksMode;
         const frag = document.createDocumentFragment();
         const tooltipElems = [];
         let pos = 0;
@@ -387,15 +396,15 @@
      * language prefix, and appends a density span if not already present.
      */
     function processAnchor(a) {
-        if (a.getAttribute(PROCESSED)) return;
+        if (a.getAttribute(PROCESSED_BOARD)) return;
 
         const m = BOARD_RE.exec(a.textContent.trim());
         if (!m) return;
 
         const [, w, h, mines] = m;
-        const mode = getBoardLinksMode();
-        a.href = `${getLangPrefix()}/start/${w}x${h}/${mines}`;
-        a.setAttribute(PROCESSED, '1');
+        const mode = _boardLinksMode;
+        a.href = `${_langPrefix}/start/${w}x${h}/${mines}`;
+        a.setAttribute(PROCESSED_BOARD, '1');
         if (mode === 1) {
             if (!a.querySelector('abbr.tooltip-extra')) {
                 const abbr = document.createElement('abbr');
@@ -431,7 +440,7 @@
         if (node.nodeType !== Node.ELEMENT_NODE) return;
 
         const tag = node.tagName;
-        if (tag === 'SCRIPT' || tag === 'STYLE' || node.getAttribute(PROCESSED)) return;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || node.getAttribute(PROCESSED_BOARD)) return;
 
         if (tag === 'A') {
             if (BOARD_RE.test(node.textContent)) processAnchor(node);
@@ -440,6 +449,40 @@
 
         // Snapshot before iterating to guard against DOM mutations during traversal
         Array.from(node.childNodes).forEach(walk);
+    }
+
+    // ── Shared DOM observer dispatcher ─────────────────────────────────────
+    // All persistent document.body MutationObservers are merged into one shared
+    // observer, reducing main-thread callback overhead on high-churn pages.
+
+    // Cached per-navigation values; refreshed by the shared observer on URL change.
+    let _boardLinksMode = getBoardLinksMode();
+    let _isGamePage = /\/game(\/|$)/.test(location.pathname);
+
+    // Handlers registered by each feature module.
+    const _domHandlers = [];
+
+    /** Registers a persistent handler with the shared body MutationObserver. */
+    function onDomChange(handler) {
+        _domHandlers.push(handler);
+    }
+
+    /**
+     * Waits for selector to match an element, then calls callback(el) and stops.
+     * If the element already exists, callback is invoked immediately.
+     */
+    function waitFor(selector, callback) {
+        const el = document.querySelector(selector);
+        if (el) { callback(el); return; }
+        function handler() {
+            const found = document.querySelector(selector);
+            if (found) {
+                const idx = _domHandlers.indexOf(handler);
+                if (idx !== -1) _domHandlers.splice(idx, 1);
+                callback(found);
+            }
+        }
+        _domHandlers.push(handler);
     }
 
     // ── No-Flag toggle ─────────────────────────────────────────────────────
@@ -543,16 +586,12 @@
         }
 
         if (!tryInsert()) {
-            const obs = new MutationObserver(() => { if (tryInsert()) obs.disconnect(); });
-            obs.observe(document.body, { childList: true, subtree: true });
+            waitFor('#levels_full', () => tryInsert());
         }
 
         // Apply initial NF state — #game may not exist yet
         if (!applyNF(nfEnabled)) {
-            const obs = new MutationObserver(() => {
-                if (document.getElementById('game')) { applyNF(nfEnabled); obs.disconnect(); }
-            });
-            obs.observe(document.body, { childList: true, subtree: true });
+            waitFor('#game', () => applyNF(nfEnabled));
         }
     }
 
@@ -570,11 +609,14 @@
             const now = new Date();
             let y = now.getUTCFullYear();
             let m = now.getUTCMonth(); // 0-based
-            if (now.getUTCDate() < 4) {
+            if (now.getUTCDate() < EVENT_START_DAY) {
                 if (--m < 0) { m = 11; y--; }
             }
-            return { start: Date.UTC(y, m, 4), end: Date.UTC(y, m + 1, 1) };
+            return { start: Date.UTC(y, m, EVENT_START_DAY), end: Date.UTC(y, m + 1, 1) };
         }
+
+        // Computed once — event boundaries don't change during a session.
+        const EVENT_PERIOD = getEventPeriod();
 
         /**
          * Returns projected stats for a player with the given point total,
@@ -583,10 +625,10 @@
          *   est  — rounded projected total at event end
          */
         function calcStats(points) {
-            const { start, end } = getEventPeriod();
+            const { start, end } = EVENT_PERIOD;
             const now = Date.now();
             if (now < start) return null;
-            const elapsedMs = Math.max(now - start, 60_000); // avoid div-by-zero
+            const elapsedMs = Math.max(now - start, MIN_ELAPSED_MS); // avoid div-by-zero
             const avgPerDay = points / (elapsedMs / 86_400_000);
             const est = now >= end ? points : avgPerDay * ((end - start) / 86_400_000);
             return { avgD: Math.round(avgPerDay), est: Math.round(est) };
@@ -678,9 +720,8 @@
             attachTbodyObs(thead, tbody);
         }
 
-        // Single persistent observer for the script's lifetime — never disconnects.
-        // Checks the URL before acting, so stat_table on other pages is ignored.
-        new MutationObserver(trySetup).observe(document.body, { childList: true, subtree: true });
+        // Registered with the shared dispatcher — URL-gated inside trySetup.
+        onDomChange(trySetup);
         trySetup();
     }
 
@@ -708,7 +749,7 @@
 
         function scheduleClick(delay) {
             clearTimeout(clickTimer);
-            clickTimer = setTimeout(tryClickBtn, delay ?? 400);
+            clickTimer = setTimeout(tryClickBtn, delay ?? AUTO_DUEL_CLICK_DELAY);
         }
 
         function tryInsert() {
@@ -764,12 +805,11 @@
             }
 
             // Initial auto-click if the feature was already enabled
-            scheduleClick(500);
+            scheduleClick(AUTO_DUEL_INITIAL_DELAY);
         }
 
-        // Persistent — never disconnects so it can re-insert the checkbox
-        // whenever #start_duel_btn re-appears after a cancel or page update.
-        new MutationObserver(tryInsert).observe(document.body, { childList: true, subtree: true });
+        // Persistent — re-inserts the checkbox whenever #start_duel_btn re-appears.
+        onDomChange(tryInsert);
         tryInsert();
     }
 
@@ -830,9 +870,9 @@
             block.querySelectorAll('table.table').forEach(processTable);
         }
 
-        // Persistent observer — re-evaluates on every DOM change so the button
-        // disappears after all quests in a table have been collected.
-        new MutationObserver(trySetup).observe(document.body, { childList: true, subtree: true });
+        // Registered with the shared dispatcher — re-evaluates on every DOM change
+        // so the button disappears after all quests in a table have been collected.
+        onDomChange(trySetup);
         trySetup();
     }
 
@@ -870,16 +910,16 @@
             currentSpan = span;
         }
 
-        // Persistent — never disconnects, so it survives SPA navigation and
+        // Registered with the shared dispatcher — survives SPA navigation and
         // re-attaches whenever #stat_my_rank is replaced by a new element.
-        new MutationObserver(() => {
+        onDomChange(() => {
             const span = document.getElementById('stat_my_rank');
             if (span && span !== currentSpan) {
                 lastClickedRank = null; // new page context: allow re-click
                 attachSpanObs(span);
                 tryClick();
             }
-        }).observe(document.body, { childList: true, subtree: true });
+        });
 
         // Handle element already present on script load
         const span = document.getElementById('stat_my_rank');
@@ -927,8 +967,14 @@
         function fetchMarketPrice(id, priceInput, helpSpan, onDone) {
             if (!window.jQuery) { if (onDone) onDone(); return; }
             const $ = window.jQuery;
-            $(helpSpan).popover('show');
             let elapsed = 0;
+            try {
+                $(helpSpan).popover('show');
+            } catch (e) {
+                console.warn('[WoM Helper] popover error:', e);
+                if (onDone) onDone();
+                return;
+            }
             const timer = setInterval(() => {
                 elapsed += 100;
                 const el = document.querySelector('.market_price_' + id);
@@ -948,7 +994,7 @@
                         return;
                     }
                 }
-                if (elapsed >= 5000) {
+                if (elapsed >= MARKET_PRICE_TIMEOUT_MS) {
                     clearInterval(timer);
                     $(helpSpan).popover('hide');
                     if (onDone) onDone();
@@ -968,7 +1014,7 @@
             function next() {
                 if (i >= rows.length) return;
                 const { id, priceInput, helpSpan } = rows[i++];
-                fetchMarketPrice(id, priceInput, helpSpan, () => setTimeout(next, 150));
+                fetchMarketPrice(id, priceInput, helpSpan, () => setTimeout(next, PRICE_FETCH_GAP_MS));
             }
             next();
         }
@@ -982,8 +1028,8 @@
 
             // Per-row max links (column 2)
             content.querySelectorAll('input.market-amount-small').forEach(input => {
-                if (input.getAttribute(PROCESSED)) return;
-                input.setAttribute(PROCESSED, '1');
+                if (input.getAttribute(PROCESSED_SELL)) return;
+                input.setAttribute(PROCESSED_SELL, '1');
                 const max = input.getAttribute('max');
                 if (!max) return;
                 const a = makeIconLink('glyphicon-arrow-up');
@@ -997,8 +1043,8 @@
 
             // Per-row market-price fetch links (column 3)
             content.querySelectorAll('input.market-price-small').forEach(priceInput => {
-                if (priceInput.getAttribute(PROCESSED)) return;
-                priceInput.setAttribute(PROCESSED, '1');
+                if (priceInput.getAttribute(PROCESSED_SELL)) return;
+                priceInput.setAttribute(PROCESSED_SELL, '1');
                 const row = priceInput.closest('tr[id^="selling_item_"]');
                 if (!row) return;
                 const id = row.id.slice('selling_item_'.length);
@@ -1027,10 +1073,10 @@
             }
         }
 
-        new MutationObserver(() => {
+        onDomChange(() => {
             const content = document.getElementById('selling_content');
             if (content) processSellingContent(content);
-        }).observe(document.body, { childList: true, subtree: true });
+        });
 
         const content = document.getElementById('selling_content');
         if (content) processSellingContent(content);
@@ -1181,7 +1227,7 @@
             }
         }
 
-        new MutationObserver(tryInsert).observe(document.body, { childList: true, subtree: true });
+        onDomChange(tryInsert);
         tryInsert();
     }
 
@@ -1195,12 +1241,13 @@
     }
 
     function init() {
-        if (getBoardLinksMode() !== 0 && !/\/game(\/|$)/.test(location.pathname)) walk(document.body);
+        if (_boardLinksMode !== 0 && !_isGamePage) walk(document.body);
 
-        new MutationObserver(mutations => {
-            if (getBoardLinksMode() === 0 || /\/game(\/|$)/.test(location.pathname)) return;
+        // Board-links handler for newly added nodes.
+        onDomChange(mutations => {
+            if (_boardLinksMode === 0 || _isGamePage) return;
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
-        }).observe(document.body, { childList: true, subtree: true });
+        });
 
         initPageFeatures();
         initEventStats();
@@ -1209,12 +1256,27 @@
         initSettings();
         initSellMaxBtn();
 
-        // Detect SPA navigation (pushState / replaceState / back-forward)
-        const _push = history.pushState.bind(history);
-        history.pushState = function (...args) { _push(...args); initPageFeatures(); };
-        const _replace = history.replaceState.bind(history);
-        history.replaceState = function (...args) { _replace(...args); initPageFeatures(); };
-        window.addEventListener('popstate', initPageFeatures);
+        // Single shared body observer.
+        // URL-change detection here replaces unsafe pushState/replaceState monkey-patching.
+        let _lastNavPath = location.pathname;
+        new MutationObserver(mutations => {
+            const path = location.pathname;
+            if (path !== _lastNavPath) {
+                _lastNavPath = path;
+                _boardLinksMode = getBoardLinksMode();
+                _isGamePage = /\/game(\/|$)/.test(path);
+                initPageFeatures();
+            }
+            const snapshot = [..._domHandlers];
+            for (const h of snapshot) h(mutations);
+        }).observe(document.body, { childList: true, subtree: true });
+
+        // Also handle back/forward navigation via the History API.
+        window.addEventListener('popstate', () => {
+            _boardLinksMode = getBoardLinksMode();
+            _isGamePage = /\/game(\/|$)/.test(location.pathname);
+            initPageFeatures();
+        });
     }
 
     if (document.readyState === 'loading') {
