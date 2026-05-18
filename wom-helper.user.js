@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.12.1
+// @version      1.12.2
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -1181,10 +1181,10 @@
     }
 
     function init() {
-        if (getBoardLinksMode() !== 0) walk(document.body);
+        if (getBoardLinksMode() !== 0 && !/\/game(\/|$)/.test(location.pathname)) walk(document.body);
 
         new MutationObserver(mutations => {
-            if (getBoardLinksMode() === 0) return;
+            if (getBoardLinksMode() === 0 || /\/game(\/|$)/.test(location.pathname)) return;
             for (const { addedNodes } of mutations) addedNodes.forEach(walk);
         }).observe(document.body, { childList: true, subtree: true });
 
