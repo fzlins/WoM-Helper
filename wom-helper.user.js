@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.12.3
+// @version      1.13.0
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -324,11 +324,6 @@
         return `${((mines / (w * h)) * 100).toFixed(2)}%`;
     }
 
-    /** Returns a mine-density string with parentheses, e.g. '(20.50%)'. */
-    function densityText(w, h, mines) {
-        return `(${densityPct(w, h, mines)})`;
-    }
-
     /** Creates an <a> linking to the given board configuration.
      *  For mode 1, wraps the link text in an <abbr class="tooltip-extra"> so hovering
      *  shows a help cursor (cursor:help) and a Bootstrap tooltip with the mine density. */
@@ -349,11 +344,11 @@
         return a;
     }
 
-    /** Creates a <span> displaying the mine density. */
+    /** Creates a <span> displaying the mine density, e.g. '(20.50%)'. */
     function makeDensitySpan(w, h, mines) {
         const s = document.createElement('span');
         s.className = 'ms-density';
-        s.textContent = densityText(+w, +h, +mines);
+        s.textContent = `(${densityPct(+w, +h, +mines)})`;
         s.style.cssText = 'color:#888;font-size:.9em;margin-left:2px;';
         return s;
     }
@@ -905,6 +900,15 @@
      * price input, then the popover is hidden.
      */
     function initSellMaxBtn() {
+        function makeIconLink(glyphClass, className) {
+            const a = document.createElement('a');
+            a.href = 'javascript:void(0)';
+            if (className) a.className = className;
+            a.innerHTML = `<i class="glyphicon ${glyphClass}"></i>`;
+            a.style.cssText = 'margin-left:3px;';
+            return a;
+        }
+
         function fillAll(content) {
             content.querySelectorAll('input.market-amount-small').forEach(input => {
                 const max = input.getAttribute('max');
@@ -982,10 +986,7 @@
                 input.setAttribute(PROCESSED, '1');
                 const max = input.getAttribute('max');
                 if (!max) return;
-                const a = document.createElement('a');
-                a.href = 'javascript:void(0)';
-                a.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
-                a.style.cssText = 'margin-left:3px;';
+                const a = makeIconLink('glyphicon-arrow-up');
                 a.addEventListener('click', () => {
                     input.value = max;
                     input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1003,11 +1004,7 @@
                 const id = row.id.slice('selling_item_'.length);
                 const helpSpan = row.querySelector('td:first-child .help');
                 if (!helpSpan) return;
-                const a = document.createElement('a');
-                a.href = 'javascript:void(0)';
-                a.className = 'ms-price-fetch';
-                a.innerHTML = '<i class="glyphicon glyphicon-tag"></i>';
-                a.style.cssText = 'margin-left:3px;';
+                const a = makeIconLink('glyphicon-tag', 'ms-price-fetch');
                 a.addEventListener('click', () => fetchMarketPrice(id, priceInput, helpSpan));
                 const coinIcon = priceInput.closest('td')?.querySelector('img');
                 (coinIcon || priceInput).insertAdjacentElement('afterend', a);
@@ -1016,11 +1013,7 @@
             // Column 2 header: fill-all ▲ link
             const th2 = table.querySelector('thead tr th:nth-child(2)');
             if (th2 && !th2.querySelector('.ms-sell-max-all')) {
-                const allLink = document.createElement('a');
-                allLink.href = 'javascript:void(0)';
-                allLink.className = 'ms-sell-max-all';
-                allLink.innerHTML = '<i class="glyphicon glyphicon-arrow-up"></i>';
-                allLink.style.cssText = 'margin-left:3px;';
+                const allLink = makeIconLink('glyphicon-arrow-up', 'ms-sell-max-all');
                 allLink.addEventListener('click', () => fillAll(content));
                 th2.appendChild(allLink);
             }
@@ -1028,11 +1021,7 @@
             // Column 3 header: fetch-all price 🏷 link
             const th3 = table.querySelector('thead tr th:nth-child(3)');
             if (th3 && !th3.querySelector('.ms-price-fetch-all')) {
-                const allPriceLink = document.createElement('a');
-                allPriceLink.href = 'javascript:void(0)';
-                allPriceLink.className = 'ms-price-fetch-all';
-                allPriceLink.innerHTML = '<i class="glyphicon glyphicon-tag"></i>';
-                allPriceLink.style.cssText = 'margin-left:3px;';
+                const allPriceLink = makeIconLink('glyphicon-tag', 'ms-price-fetch-all');
                 allPriceLink.addEventListener('click', () => fetchAllPrices(content));
                 th3.appendChild(allPriceLink);
             }
