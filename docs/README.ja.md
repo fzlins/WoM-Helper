@@ -1,4 +1,4 @@
-# WoM Helper
+﻿# WoM Helper
 
 [![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
@@ -22,6 +22,7 @@
 - **対戦相手自動検索（PvP）** — [PvP ページ](https://minesweeper.online/pvp)の *対戦相手を探す* ボタンの隣に **Auto** チェックボックスが表示されます。チェックを入れると、ページ読み込み時・各試合後・タイムアウト後にボタンが自動でクリックされます。*キャンセル* をクリックすると停止します。設定はセッションをまたいで記憦されます。
 - **クエスト報酬一括受け取り** — [クエストページ](https://minesweeper.online/quests)で受け取れる報酬がある場合、各クエストカテゴリーの上部に *まとめて受け取る* ボタンが表示されます。ワンクリックでそのカテゴリーの全ての受け取り可能な報酬を受け取れ、全て受け取るとボタンは自動的に消えます。
 - **最大売却・市場価格取得** — [マーケットプレイスページ](https://minesweeper.online/marketplace)の売却ダイアログで、各行に 2 つのヘルパーが追加されます。数量フィールドの横の **▲** リンクをクリックすると所有する最大数量が自動入力され、価格フィールドの横の **🏷** リンクをクリックするとサイトの WebSocket を通じて現在の市場価格が自動取得されます。ヘッダーリンクで全行を一括処理することもできます。
+- **Quest Advisor** — [装備ページ](https://minesweeper.online/equipment)の装備見出しの下に **Quest Advisor** の行が表示されます。目標タイプ（例: MC）を選び、目標値とプレイ回数を入力すると、推薦ボードがクリック可能なリンクでリアルタイムに表示されます。スクリプトは装備統計から現在の Minecoin ボーナスを自動読み取りします。
 ## インストール
 
 **方法 A — Greasy Fork（推奨）**
@@ -37,6 +38,12 @@
 > **スクリプトが動作しない場合** Chrome 系ブラウザで Tampermonkey 5.3+ を使用する場合、ユーザースクリプトを実行するために一度だけ追加設定が必要です。詳細は [Q209: ユーザースクリプトの実行許可](https://www.tampermonkey.net/faq.php?q=Q209#Q209) を参照してください：
 > - **Chrome/Edge 138+** — Tampermonkey アイコンを右クリック → *拡張機能を管理* → **ユーザースクリプトを許可** を有効化。
 > - **旧バージョンの Chrome/Edge** — `chrome://extensions`（または `edge://extensions`）を開き、**デベロッパー モード** を有効化。
+
+## 謝辞
+
+| 貢献者 | 貢献内容 |
+|---|---|
+| [Curiosity](https://minesweeper.online/player/8440847) | Quest Advisor で使用されている[ボード難易度データ](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) |
 
 ## ライセンス
 

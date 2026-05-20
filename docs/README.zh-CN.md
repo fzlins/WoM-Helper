@@ -1,8 +1,8 @@
-# WoM Helper
+﻿# WoM Helper
 
 [![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能、在市场出售弹窗中提供最大出售和市场价格辅助，并支持在设置页面单独开关每项功能。
+适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旇模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐，并支持在设置页面单独开关每项功能。
 
 ## 设置
 
@@ -13,6 +13,7 @@
 - 一键领取任务奖励
 - 自动滚动到我的排名
 - 最大出售与市场价格
+- 装备 MC 推荐
 
 ## 功能
 
@@ -24,6 +25,7 @@
 - **自动寻找对手（PvP）** — 在 [PvP 页面](https://minesweeper.online/pvp)的 *寻找对手* 按钮旁会出现一个 **Auto** 复选框。勾选后，每当按钮可用时（页面加载时、每场对局或超时结束后）都会自动点击。点击 *取消* 可随时停止。该设置在会话之间自动记忆。
 - **一键领取任务奖励** — 在[任务页面](https://minesweeper.online/quests)，当某类任务中有可领取的奖励时，该类别顶部会出现一个 *全部领取* 按钮，点击一次即可领取其中所有可领取奖励；全部领取完毕后按钮自动消失。
 - **最大出售与市场价格** — 在[市场页面](https://minesweeper.online/marketplace)的出售弹窗中，每行将新增两个辅助：数量输入框旁的 **▲** 链接可一键填入您拥有的最大数量，价格输入框旁的 **🏷** 链接可通过站点 WebSocket 自动获取当前市场价格。表头链接可对所有行批量操作。
+- **Quest Advisor** — 在[装备页面](https://minesweeper.online/equipment)的装备标题下方，出现一行 **Quest Advisor** 控件。选择目标类型（如 MC），输入目标数量，并选择计划游玩次数，推荐棋盘会作为可点击链接实时显示。脚本会自动从装备统计数据中读取当前 Minecoin 加成。
 ## 安装
 
 **方式一 — Greasy Fork（推荐）**
@@ -39,6 +41,12 @@
 > **脚本无法运行？** 在 Chrome 系浏览器上，Tampermonkey 5.3+ 需要额外的一次性设置才能执行用户脚本。详见 [Q209：用户脚本执行权限](https://www.tampermonkey.net/faq.php?q=Q209#Q209)：
 > - **Chrome/Edge 138+** — 右键点击 Tampermonkey 图标 → *管理扩展程序* → 启用 **允许用户脚本**。
 > - **旧版 Chrome/Edge** — 前往 `chrome://extensions`（或 `edge://extensions`），开启 **开发者模式**。
+
+## 致谢
+
+| 贡献者 | 贡献内容 |
+|---|---|
+| [Curiosity](https://minesweeper.online/player/8440847) | Quest Advisor 所使用的[棋盘难度数据](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) |
 
 ## 许可证
 
