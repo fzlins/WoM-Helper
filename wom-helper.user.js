@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.0
+// @version      2.0.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -627,6 +627,8 @@
 
     /** Injects NF checkboxes into the level bar and restores the saved state. */
     function initNF() {
+        if (initNF._done) return;
+        initNF._done = true;
         let nfEnabled = localStorage.getItem(NF_KEY) === '1';
 
         const syncAll = () => {
@@ -674,14 +676,11 @@
             return true;
         }
 
-        if (!tryInsert()) {
-            waitFor('#levels_full', () => tryInsert());
-        }
-
-        // Apply initial NF state — #game may not exist yet
-        if (!applyNF(nfEnabled)) {
-            waitFor('#game', () => applyNF(nfEnabled));
-        }
+        // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
+        onDomChange(tryInsert);
+        onDomChange(() => applyNF(nfEnabled));
+        tryInsert();
+        applyNF(nfEnabled);
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
@@ -825,6 +824,8 @@
      * in localStorage.
      */
     function initAutoDuel() {
+        if (initAutoDuel._done) return;
+        initAutoDuel._done = true;
         let autoEnabled = localStorage.getItem(AUTO_DUEL_KEY) === '1';
         let clickTimer = null;
         let cancelListenerAdded = false;
@@ -1315,8 +1316,10 @@
             if (hr) hr.insertAdjacentElement('beforebegin', panel);
             else block.appendChild(panel);
 
-            tryReadBonus(v => { bonus = v; updateResult(); });
-            setTimeout(() => { tryReadBonus(v => { bonus = v; updateResult(); }); }, 1000);
+            let bonusLoaded = false;
+            tryReadBonus(v => { bonus = v; bonusLoaded = true; updateResult(); });
+            // Only retry if the first attempt failed (avoids a redundant popover flash).
+            setTimeout(() => { if (!bonusLoaded) tryReadBonus(v => { bonus = v; updateResult(); }); }, 1000);
         }
 
         onDomChange(trySetup);
