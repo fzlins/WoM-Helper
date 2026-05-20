@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.1
+// @version      2.0.2
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -113,9 +113,9 @@
             featAutoDuelDesc: 'Fügt auf der PvP-Seite eine Auto-Checkbox hinzu, die automatisch erneut auf die Suche-Schaltfläche klickt.',
             featSellMax: 'Max. verkaufen & Marktpreis',
             featSellMaxDesc: 'Im Verkaufsdialog auf der Marktplatz-Seite wird eine ▲-Schaltfläche neben jedem Mengenfeld hinzugefügt, um die maximal besessene Menge einzutragen, sowie eine 🏷-Schaltfläche neben jedem Preisfeld zum automatischen Abrufen des aktuellen Marktpreises.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Quest-Berater',
             featQuestAdvisorDesc: 'Auf der Ausrüstungsseite erscheint ein Panel, in dem du ein Minecoin-Ziel und die Anzahl der Spielrunden eingibst – das optimale Spielfeld wird basierend auf deinem aktuellen Ausrüstungsbonus empfohlen.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Quest-Berater',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Ziel',
             questAdvisorPlay: 'Runde',
@@ -144,9 +144,9 @@
             featAutoDuelDesc: 'Добавляет флажок Auto на странице PvP, который автоматически нажимает кнопку поиска соперника.',
             featSellMax: 'Продать максимум & рыночная цена',
             featSellMaxDesc: 'В диалоге продажи на странице Маркетплейса добавляет кнопку ▲ рядом с каждым полем количества для заполнения максимально возможного, и кнопку 🏷 рядом с полем цены для автоматического получения текущей рыночной цены.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Советник',
             featQuestAdvisorDesc: 'На странице снаряжения появляется панель: укажи целевое количество Minecoin и число попыток — скрипт подберёт оптимальное поле с учётом твоего текущего бонуса снаряжения.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Советник',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Цель',
             questAdvisorPlay: 'партия',
@@ -175,9 +175,9 @@
             featAutoDuelDesc: 'Añade una casilla Auto en la página PvP que hace clic automáticamente en el botón de buscar rival.',
             featSellMax: 'Vender el máximo & precio de mercado',
             featSellMaxDesc: 'En el modal de venta de la página del Mercado, añade un botón ▲ junto a cada campo de cantidad para rellenar el máximo disponible, y un botón 🏷 junto a cada campo de precio para obtener automáticamente el precio de mercado actual.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Asesor',
             featQuestAdvisorDesc: 'En la página de Equipamiento aparece un panel: introduce un objetivo de Minecoin y el número de partidas, y obtendrás la recomendación del tablero óptimo según tu bono de equipo actual.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Asesor',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Objetivo',
             questAdvisorPlay: 'partida',
@@ -206,9 +206,9 @@
             featAutoDuelDesc: 'Adiciona uma caixa Auto na página PvP que clica automaticamente no botão de buscar adversário.',
             featSellMax: 'Vender o máximo & preço de mercado',
             featSellMaxDesc: 'No modal de venda da página do Mercado, adiciona um botão ▲ junto a cada campo de quantidade para preencher o máximo disponível, e um botão 🏷 junto a cada campo de preço para obter automaticamente o preço de mercado atual.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Consultor',
             featQuestAdvisorDesc: 'Na página de Equipamento surge um painel: insira uma meta de Minecoin e o número de jogadas para receber a recomendação do tabuleiro ideal com base no seu bónus de equipamento atual.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Consultor',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Meta',
             questAdvisorPlay: 'jogada',
@@ -237,9 +237,9 @@
             featAutoDuelDesc: 'Aggiunge una casella Auto nella pagina PvP che fa clic automaticamente sul pulsante di ricerca avversario.',
             featSellMax: 'Vendi il massimo & prezzo di mercato',
             featSellMaxDesc: 'Nel modale di vendita della pagina Marketplace, aggiunge un pulsante ▲ accanto a ogni campo quantità per inserire il massimo disponibile, e un pulsante 🏷 accanto a ogni campo prezzo per recuperare automaticamente il prezzo di mercato attuale.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Consulente',
             featQuestAdvisorDesc: 'Nella pagina Equipaggiamento compare un pannello: inserisci un obiettivo di Minecoin e il numero di partite per ricevere il consiglio sul campo ottimale in base al tuo bonus equipaggiamento attuale.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Consulente',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Obiettivo',
             questAdvisorPlay: 'partita',
@@ -268,9 +268,9 @@
             featAutoDuelDesc: "Ajoute une case Auto sur la page PvP qui clique automatiquement sur le bouton de recherche d'adversaire.",
             featSellMax: 'Vendre le maximum & prix du marché',
             featSellMaxDesc: "Dans la fenêtre de vente de la page Marketplace, ajoute un bouton ▲ à côté de chaque champ de quantité pour remplir le maximum disponible, et un bouton 🏷 à côté de chaque champ de prix pour récupérer automatiquement le prix du marché actuel.",
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'Conseiller',
             featQuestAdvisorDesc: 'Sur la page Équipement, un panneau apparaît : saisissez un objectif de Minecoin et le nombre de parties pour obtenir la recommandation du plateau optimal selon votre bonus d\'équipement actuel.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'Conseiller',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Objectif',
             questAdvisorPlay: 'partie',
@@ -299,9 +299,9 @@
             featAutoDuelDesc: '在 PvP 页面添加"自动"复选框，自动重新点击寻找对手按钮。',
             featSellMax: '最大出售 & 市场价格',
             featSellMaxDesc: '在市场页面的出售弹窗中，每行数量输入框旁添加 ▲ 按钮以自动填入您拥有的最大数量，价格输入框旁添加 🏷 按钮以自动获取当前市场价格。',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: '任务顾问',
             featQuestAdvisorDesc: '在装备页面显示一个面板：输入 Minecoin 目标和游玩次数，根据当前装备加成推荐最优棋盘。',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: '任务顾问',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目标',
             questAdvisorPlay: '局',
@@ -330,9 +330,9 @@
             featAutoDuelDesc: '在 PvP 頁面新增「自動」複選框，自動重新點擊尋找對手按鈕。',
             featSellMax: '最大出售 & 市場價格',
             featSellMaxDesc: '在市場頁面的出售彈窗中，每行數量輸入框旁新增 ▲ 按鈕以自動填入您擁有的最大數量，價格輸入框旁新增 🏷 按鈕以自動取得目前市場價格。',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: '任務顧問',
             featQuestAdvisorDesc: '在裝備頁面顯示一個面板：輸入 Minecoin 目標和遊玩次數，根據目前裝備加成推薦最佳棋盤。',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: '任務顧問',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目標',
             questAdvisorPlay: '局',
@@ -361,9 +361,9 @@
             featAutoDuelDesc: 'PvP ページに「自動」チェックボックスを追加し、対戦相手検索ボタンを自動的にクリックします。',
             featSellMax: '最大売却 & 市場価格',
             featSellMaxDesc: 'マーケットプレイスページの売却ダイアログで、各数量フィールドの横に所有する最大数量を入力する ▲ ボタンを追加し、各価格フィールドの横に現在の市場価格を自動取得する 🏷 ボタンを追加します。',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: 'クエストアドバイザー',
             featQuestAdvisorDesc: '装備ページにパネルを表示します：Minecoin の目標値とプレイ回数を入力すると、現在の装備ボーナスに基づいて最適なボードを推薦します。',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: 'クエストアドバイザー',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目標',
             questAdvisorPlay: '回',
@@ -392,9 +392,9 @@
             featAutoDuelDesc: 'PvP 페이지에 "자동" 체크박스를 추가하여 상대 찾기 버튼을 자동으로 클릭합니다.',
             featSellMax: '최대 판매 & 시장 가격',
             featSellMaxDesc: '마켓플레이스 페이지의 판매 모달에서 각 수량 필드 옆에 최대 보유 수량을 자동 입력하는 ▲ 버튼을 추가하고, 각 가격 필드 옆에 현재 시장 가격을 자동으로 가져오는 🏷 버튼을 추가합니다.',
-            featQuestAdvisor: 'Quest Advisor',
+            featQuestAdvisor: '퀘스트 어드바이저',
             featQuestAdvisorDesc: '장비 페이지에 패널이 표시됩니다: Minecoin 목표와 플레이 횟수를 입력하면 현재 장비 보너스를 기반으로 최적의 보드를 추천합니다.',
-            questAdvisorLabel: 'Quest Advisor',
+            questAdvisorLabel: '퀘스트 어드바이저',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '목표',
             questAdvisorPlay: '판',
@@ -1294,14 +1294,15 @@
                 const plays  = parseInt(playsSelect.value, 10);
                 resultSpan.innerHTML = '';
                 if (!(target > 0)) return;
-                const found = findBoard(target / (plays * (1 + bonus)));
+                const found = findBoard(Math.ceil(target / plays) / (1 + bonus));
                 if (found) {
-                    const [, board] = found;
+                    const [diff, board] = found;
+                    const expected = Math.floor(diff * (1 + bonus));
                     const a = document.createElement('a');
                     a.href = `${_langPrefix}/start/${board}`;
                     a.textContent = board;
                     a.style.fontFamily = 'monospace';
-                    resultSpan.append('→ ', a);
+                    resultSpan.append('→ ', a, ` (≈${expected} ${t('questAdvisorGoalMC')})`);
                 } else {
                     resultSpan.textContent = '→ —';
                 }
@@ -1315,6 +1316,17 @@
             const hr = block.querySelector('.shop-hr');
             if (hr) hr.insertAdjacentElement('beforebegin', panel);
             else block.appendChild(panel);
+
+            // Pre-fill from URL query params (e.g. ?quest=mc&target=1000).
+            const _params = new URLSearchParams(location.search);
+            const _questParam = _params.get('quest');
+            if (_questParam && goalSelect.querySelector(`option[value="${_questParam}"]`)) {
+                goalSelect.value = _questParam;
+            }
+            const _targetParam = parseFloat(_params.get('target'));
+            if (_targetParam > 0) {
+                targetInput.value = _targetParam;
+            }
 
             let bonusLoaded = false;
             tryReadBonus(v => { bonus = v; bonusLoaded = true; updateResult(); });
