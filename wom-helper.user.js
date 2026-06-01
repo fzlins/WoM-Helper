@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.3
+// @version      2.0.4
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -33,12 +33,12 @@
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
 
     // Named timing constants (avoids magic numbers scattered through the code)
-    const AUTO_DUEL_CLICK_DELAY = 400;    // ms to wait for #start_duel_btn state to stabilize
-    const AUTO_DUEL_INITIAL_DELAY = 500;    // ms before first auto-click after checkbox injection
-    const MARKET_PRICE_TIMEOUT_MS = 5000;   // ms before giving up on WebSocket market price response
-    const PRICE_FETCH_GAP_MS = 150;    // ms between sequential market price fetches (avoid WS throttling)
+    const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
+    const AUTO_DUEL_INITIAL_DELAY = 500; // ms before first auto-click after checkbox injection
+    const MARKET_PRICE_TIMEOUT_MS = 5000; // ms before giving up on WebSocket market price response
+    const PRICE_FETCH_GAP_MS = 150; // ms between sequential market price fetches (avoid WS throttling)
     const MIN_ELAPSED_MS = 60_000; // prevents div-by-zero at event period start
-    const EVENT_START_DAY = 4;      // events begin on the 4th of each month
+    const EVENT_START_DAY = 4; // events begin on the 4th of each month
 
     /**
      * Returns true when the feature is enabled.
@@ -1229,7 +1229,7 @@
      * player's Minecoin bonus from the all-stats popover, then recommends the
      * optimal board to play N times to reach a target Minecoin total.
      *
-     * Reward per play = difficulty x (1 + mc_bonus), where mc_bonus is the
+    * Reward per play = difficulty x mc_bonus, where mc_bonus is the
      * numeric value from the "Minecoins: Nx" line of the combined stats tooltip.
      */
     function initQuestAdvisor() {
@@ -1320,10 +1320,10 @@
                 const plays = parseInt(playsSelect.value, 10);
                 resultSpan.innerHTML = '';
                 if (!(target > 0)) return;
-                const found = findBoard(Math.ceil(target / plays) / (1 + bonus));
+                const found = findBoard(Math.ceil(target / plays) / bonus);
                 if (found) {
                     const [diff, board] = found;
-                    const expected = Math.floor(diff * (1 + bonus));
+                    const expected = Math.floor(diff * bonus);
                     const a = document.createElement('a');
                     a.href = `${_langPrefix}/start/${board}`;
                     a.textContent = board;
