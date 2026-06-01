@@ -16,11 +16,11 @@
     'use strict';
 
     // WxH/M board-size pattern, e.g. 58x35/393
-    const BOARD_RE   = /(\d+)x(\d+)\/(\d+)/;
+    const BOARD_RE = /(\d+)x(\d+)\/(\d+)/;
     const BOARD_RE_G = /(\d+)x(\d+)\/(\d+)/g;
     // Per-feature processed markers — kept separate to avoid cross-feature conflicts
     const PROCESSED_BOARD = 'data-ms-board-done';
-    const PROCESSED_SELL  = 'data-ms-sell-done';
+    const PROCESSED_SELL = 'data-ms-sell-done';
 
     // Feature enable/disable keys (stored in localStorage; default: enabled)
     const FEAT_BOARD_LINKS_KEY = 'ms-feat-board-links';
@@ -33,12 +33,12 @@
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
 
     // Named timing constants (avoids magic numbers scattered through the code)
-    const AUTO_DUEL_CLICK_DELAY   = 400;    // ms to wait for #start_duel_btn state to stabilize
+    const AUTO_DUEL_CLICK_DELAY = 400;    // ms to wait for #start_duel_btn state to stabilize
     const AUTO_DUEL_INITIAL_DELAY = 500;    // ms before first auto-click after checkbox injection
     const MARKET_PRICE_TIMEOUT_MS = 5000;   // ms before giving up on WebSocket market price response
-    const PRICE_FETCH_GAP_MS      = 150;    // ms between sequential market price fetches (avoid WS throttling)
-    const MIN_ELAPSED_MS          = 60_000; // prevents div-by-zero at event period start
-    const EVENT_START_DAY         = 4;      // events begin on the 4th of each month
+    const PRICE_FETCH_GAP_MS = 150;    // ms between sequential market price fetches (avoid WS throttling)
+    const MIN_ELAPSED_MS = 60_000; // prevents div-by-zero at event period start
+    const EVENT_START_DAY = 4;      // events begin on the 4th of each month
 
     /**
      * Returns true when the feature is enabled.
@@ -1317,7 +1317,7 @@
 
             function updateResult() {
                 const target = parseFloat(targetInput.value);
-                const plays  = parseInt(playsSelect.value, 10);
+                const plays = parseInt(playsSelect.value, 10);
                 resultSpan.innerHTML = '';
                 if (!(target > 0)) return;
                 const found = findBoard(Math.ceil(target / plays) / (1 + bonus));
