@@ -22,8 +22,6 @@ The version is declared in the `@version` field of the UserScript metadata block
 ```
 wom-helper.user.js   ← the entire script; single entry point
 docs/
-  README.ja.md       ← Japanese translation of README
-  README.ru.md       ← Russian translation
   README.zh-CN.md    ← Simplified Chinese translation
 ```
 
@@ -52,8 +50,8 @@ docs/
 4. **Auto-duel** (`initAutoDuel`)  
    On `/pvp` pages, injects an "Auto" checkbox that automatically re-clicks `#start_duel_btn` whenever it becomes enabled. Cancelled by clicking `#cancel_duel_btn`. State saved in `localStorage`.
 
-5. **Quest collect-all** (`initQuestCollect`)  
-   On `/quests` pages, watches each table inside `#QuestsBlock` and injects a button (cloning the site's own collect-button style and text) into the last `<th>` of the table's header row whenever the table contains any collectable rows. Clicking it auto-clicks all visible `collect_btn` buttons in that table only. The button is removed automatically when no collectable rows remain.
+5. **Collect-all buttons** (`initCollectAll`)  
+   Single shared implementation with one feature toggle key. It runs on all `table.table` instances (no path gating): for each table, it first checks whether collect buttons exist in the first column; if found, it injects *Collect All* into the first cell of the first row. Otherwise it checks the last column and injects into the last cell of the first row when found. If neither column has collect buttons, no button is shown. The button auto-clicks all `collect_btn` elements in that detected column and is removed when no collectable rows remain.
 
 6. **My-rank auto-click** (`initMyRankClick`)  
    Watches `#stat_my_rank` and auto-clicks the `.position` anchor whenever the rank value changes, scrolling the leaderboard to the player's row.
@@ -65,13 +63,13 @@ docs/
 
 ```
 init()
-  ├─ walk(document.body)        — initial DOM scan
-  ├─ initPageFeatures()         — NF toggle + auto-duel + sell max (path-gated)
-  ├─ initEventStats()           — event leaderboard column
-  ├─ initQuestCollect()         — quests collect-all button
-  ├─ initMyRankClick()          — rank auto-click
-  ├─ MutationObserver(walk)     — process newly added nodes
-  └─ history patch              — re-run initPageFeatures() on SPA navigation
+   ├─ walk(document.body)        — initial DOM scan
+   ├─ initPageFeatures()         — NF toggle + auto-duel + sell max (path-gated)
+   ├─ initEventStats()           — event leaderboard column
+   ├─ initCollectAll()           — global collect-all buttons (first/last column detection)
+   ├─ initMyRankClick()          — rank auto-click
+   ├─ MutationObserver(walk)     — process newly added nodes
+   └─ history patch              — re-run initPageFeatures() on SPA navigation
 ```
 
 ## SPA Navigation

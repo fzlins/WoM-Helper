@@ -1,8 +1,8 @@
 ﻿# WoM Helper
 
-[![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旇模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务页面提供一键操作快捷功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐，并支持在设置页面单独开关每项功能。
+适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旼模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务和市场页面提供一键领取功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐，并支持在设置页面单独开关每项功能。
 
 ## 设置
 
@@ -10,7 +10,7 @@
 
 - 棋盘链接与雷密度
 - 活动积分预测
-- 一键领取任务奖励
+- 一键领取按钮
 - 自动滚动到我的排名
 - 最大出售与市场价格
 - 任务顾问
@@ -23,7 +23,7 @@
 - **活动预计列** — 在[活动页面](https://minesweeper.online/events)的排行榜中新增「预计总分」列，根据玩家当前进度预测活动结束时的总积分。悬停任意格可查看每日均值。
 - **自动滚动到我的排名** — 排行榜加载完毕或积分刷新后排名变化时，页面会自动滚动到你在排行榜中的位置。翻页操作不会触发此行为。
 - **自动寻找对手（PvP）** — 在 [PvP 页面](https://minesweeper.online/pvp)的 *寻找对手* 按钮旁会出现一个 **Auto** 复选框。勾选后，每当按钮可用时（页面加载时、每场对局或超时结束后）都会自动点击。点击 *取消* 可随时停止。该设置在会话之间自动记忆。
-- **一键领取任务奖励** — 在[任务页面](https://minesweeper.online/quests)，当某类任务中有可领取的奖励时，该类别顶部会出现一个 *全部领取* 按钮，点击一次即可领取其中所有可领取奖励；全部领取完毕后按钮自动消失。
+- **一键领取按钮** — 在任意页面的表格中，只要存在可领取按钮，脚本就会自动添加 *全部领取*。检测顺序是先看第一列；如果第一列没有，再看最后一列。两列都没有可领取按钮时，不会显示 *全部领取*。
 - **最大出售与市场价格** — 在[市场页面](https://minesweeper.online/marketplace)的出售弹窗中，每行将新增两个辅助：数量输入框旁的 **▲** 链接可一键填入您拥有的最大数量，价格输入框旁的 **🏷** 链接可通过站点 WebSocket 自动获取当前市场价格。表头链接可对所有行批量操作。
 - **任务顾问** — 在[装备页面](https://minesweeper.online/equipment)的装备标题下方，出现一行任务顾问控件。选择目标类型（如 MC），输入目标数量，并选择计划游玩次数，推荐棋盘会作为可点击链接实时显示。脚本会自动从装备统计数据中读取当前 Minecoin 加成。
 

@@ -1,8 +1,8 @@
 # WoM Helper
 
-[![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![日本語](https://img.shields.io/badge/docs-日本語-red)](./docs/README.ja.md) [![Русский](https://img.shields.io/badge/docs-Русский-orange)](./docs/README.ru.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
+[![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, and lets you toggle each feature from the Settings page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, and lets you toggle each feature from the Settings page.
 
 ## Settings
 
@@ -10,7 +10,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 
 - Board links & mine density
 - Event score projection
-- Quest collect-all
+- Collect-all buttons
 - My-rank auto-scroll
 - Sell max & market price
 - Quest Advisor
@@ -23,7 +23,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - **Event stats column** — On the [Events](https://minesweeper.online/events) page, an **Est. Total** column appears in the leaderboard showing each player's projected total points by the end of the event, based on their current pace. Hover any cell to see the daily average.
 - **Auto-scroll to my rank** — When the leaderboard loads or your rank changes after a stats update, the page automatically scrolls to your position in the table. Navigating between leaderboard pages does not trigger this.
 - **Auto-find opponent (PvP)** — On the [PvP](https://minesweeper.online/pvp) page, an **Auto** checkbox appears next to the *Find Opponent* button. When checked, the button is pressed automatically whenever it becomes available — on page load, after each match, or after a timeout. Click *Cancel* to stop. The setting is remembered between sessions.
-- **Quest collect-all** — On the [Quests](https://minesweeper.online/quests) page, a *Collect All* button appears at the top of each quest category whenever rewards are ready to collect. One click claims every available reward in that section; the button disappears once all are claimed.
+- **Collect-all buttons** — On any page where collectable rows are shown in a table, a *Collect All* button is added automatically. The script checks the first column first; if no collect buttons are found there, it checks the last column. If neither column has collect buttons, no *Collect All* button is shown.
 - **Sell max & market price** — On the [Marketplace](https://minesweeper.online/marketplace) page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
 - **Quest Advisor** — On the [Equipment](https://minesweeper.online/equipment) page, a **Quest Advisor** row appears below the equipment heading. Choose a goal type (e.g. MC), enter a target amount, and select how many times you plan to play; the advisor automatically reads your current Minecoin bonus from the equipment stats and shows the recommended board as a clickable link.
 

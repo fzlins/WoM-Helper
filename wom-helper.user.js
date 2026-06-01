@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.2
+// @version      2.0.3
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -25,7 +25,7 @@
     // Feature enable/disable keys (stored in localStorage; default: enabled)
     const FEAT_BOARD_LINKS_KEY = 'ms-feat-board-links';
     const FEAT_EVENT_STATS_KEY = 'ms-feat-event-stats';
-    const FEAT_QUEST_COLLECT_KEY = 'ms-feat-quest-collect';
+    const FEAT_COLLECT_ALL_KEY = 'ms-feat-collect-all';
     const FEAT_MY_RANK_KEY = 'ms-feat-my-rank';
     const FEAT_NF_KEY = 'ms-feat-nf';
     const FEAT_AUTO_DUEL_KEY = 'ms-feat-auto-duel';
@@ -65,8 +65,8 @@
             featBoardLinksDesc: 'Converts WxH/M board-size text into clickable links and shows the mine density percentage.',
             featEventStats: 'Event score projection',
             featEventStatsDesc: 'Adds a projected end-of-event score column to the events leaderboard.',
-            featQuestCollect: 'Quest collect-all',
-            featQuestCollectDesc: 'Adds a one-click button to collect all available rewards in each quest table.',
+            featQuestAll: 'Collect-all buttons',
+            featQuestAllDesc: 'Adds a one-click button for table rows with collect actions. The script checks the first column first, then the last column.',
             featMyRank: 'My-rank auto-scroll',
             featMyRankDesc: 'Automatically scrolls the leaderboard to your rank row whenever the rank loads or changes.',
             questCollectAllBtn: 'Collect All',
@@ -89,15 +89,15 @@
             questAdvisorTarget: 'Target',
             questAdvisorPlay: 'play',
             questAdvisorPlays: 'plays',
-
+            
         },
         de: {
             featBoardLinks: 'Spielfeld-Links & Minendichte',
             featBoardLinksDesc: 'Konvertiert WxH/M-Feldtexte in anklickbare Links und zeigt den Minendichte-Prozentsatz an.',
             featEventStats: 'Event-Punkteprojektion',
             featEventStatsDesc: 'Fügt der Event-Rangliste eine Spalte mit den prognostizierten Endpunkten hinzu.',
-            featQuestCollect: 'Alle Quests einsammeln',
-            featQuestCollectDesc: 'Fügt eine Schaltfläche hinzu, um alle verfügbaren Belohnungen in jeder Quest-Tabelle mit einem Klick einzusammeln.',
+            featQuestAll: 'Alle Quests einsammeln',
+            featQuestAllDesc: 'Fügt eine Schaltfläche hinzu, um alle verfügbaren Belohnungen in jeder Quest-Tabelle mit einem Klick einzusammeln.',
             featMyRank: 'Automatischer Rang-Scroll',
             featMyRankDesc: 'Scrollt die Rangliste automatisch zur eigenen Rangzeile, sobald der Rang geladen oder geändert wird.',
             questCollectAllBtn: 'Alle abholen',
@@ -127,8 +127,8 @@
             featBoardLinksDesc: 'Преобразует текст формата WxH/M в кликабельные ссылки и показывает процент плотности мин.',
             featEventStats: 'Прогноз очков события',
             featEventStatsDesc: 'Добавляет столбец с прогнозируемыми итоговыми очками в таблицу лидеров события.',
-            featQuestCollect: 'Забрать все награды',
-            featQuestCollectDesc: 'Добавляет кнопку для получения всех доступных наград в каждой таблице заданий одним кликом.',
+            featQuestAll: 'Забрать все награды',
+            featQuestAllDesc: 'Добавляет кнопку для получения всех доступных наград в каждой таблице заданий одним кликом.',
             featMyRank: 'Авто-прокрутка к рангу',
             featMyRankDesc: 'Автоматически прокручивает таблицу лидеров до вашей строки ранга при загрузке или изменении ранга.',
             questCollectAllBtn: 'Получить все',
@@ -158,8 +158,8 @@
             featBoardLinksDesc: 'Convierte el texto WxH/M en enlaces clicables y muestra el porcentaje de densidad de minas.',
             featEventStats: 'Proyección de puntuación del evento',
             featEventStatsDesc: 'Añade una columna de puntuación proyectada al final del evento en la tabla de clasificación.',
-            featQuestCollect: 'Recolectar todas las misiones',
-            featQuestCollectDesc: 'Añade un botón de un clic para recolectar todas las recompensas disponibles en cada tabla de misiones.',
+            featQuestAll: 'Recolectar todas las misiones',
+            featQuestAllDesc: 'Añade un botón de un clic para recolectar todas las recompensas disponibles en cada tabla de misiones.',
             featMyRank: 'Auto-desplazamiento a mi rango',
             featMyRankDesc: 'Desplaza automáticamente la tabla de clasificación a tu fila de rango cuando se carga o cambia.',
             questCollectAllBtn: 'Recoger todo',
@@ -189,8 +189,8 @@
             featBoardLinksDesc: 'Converte o texto WxH/M em links clicáveis e exibe a porcentagem de densidade de minas.',
             featEventStats: 'Projeção de pontuação do evento',
             featEventStatsDesc: 'Adiciona uma coluna de pontuação projetada ao final do evento na tabela de classificação.',
-            featQuestCollect: 'Coletar todas as missões',
-            featQuestCollectDesc: 'Adiciona um botão de um clique para coletar todas as recompensas disponíveis em cada tabela de missões.',
+            featQuestAll: 'Coletar todas as missões',
+            featQuestAllDesc: 'Adiciona um botão de um clique para coletar todas as recompensas disponíveis em cada tabela de missões.',
             featMyRank: 'Rolagem automática para minha classificação',
             featMyRankDesc: 'Rola automaticamente a tabela de classificação para sua linha de classificação quando o ranking é carregado ou alterado.',
             questCollectAllBtn: 'Coletar tudo',
@@ -220,8 +220,8 @@
             featBoardLinksDesc: 'Converte il testo WxH/M in link cliccabili e mostra la percentuale di densità delle mine.',
             featEventStats: 'Proiezione punteggio evento',
             featEventStatsDesc: 'Aggiunge una colonna con il punteggio previsto a fine evento nella classifica.',
-            featQuestCollect: 'Raccolta quest completa',
-            featQuestCollectDesc: 'Aggiunge un pulsante per raccogliere tutte le ricompense disponibili in ogni tabella delle quest con un clic.',
+            featQuestAll: 'Raccolta quest completa',
+            featQuestAllDesc: 'Aggiunge un pulsante per raccogliere tutte le ricompense disponibili in ogni tabella delle quest con un clic.',
             featMyRank: 'Auto-scroll al mio grado',
             featMyRankDesc: 'Scorre automaticamente la classifica fino alla tua riga di grado quando il grado viene caricato o cambia.',
             questCollectAllBtn: 'Ritira tutto',
@@ -251,8 +251,8 @@
             featBoardLinksDesc: 'Convertit le texte WxH/M en liens cliquables et affiche le pourcentage de densité de mines.',
             featEventStats: 'Projection du score d\'événement',
             featEventStatsDesc: 'Ajoute une colonne de score projeté en fin d\'événement au tableau de classement.',
-            featQuestCollect: 'Collecte de quêtes en masse',
-            featQuestCollectDesc: 'Ajoute un bouton en un clic pour collecter toutes les récompenses disponibles dans chaque tableau de quêtes.',
+            featQuestAll: 'Collecte de quêtes en masse',
+            featQuestAllDesc: 'Ajoute un bouton en un clic pour collecter toutes les récompenses disponibles dans chaque tableau de quêtes.',
             featMyRank: 'Défilement automatique vers mon rang',
             featMyRankDesc: 'Fait défiler automatiquement le classement jusqu\'à votre ligne de rang lors du chargement ou d\'un changement.',
             questCollectAllBtn: 'Tout collecter',
@@ -282,8 +282,8 @@
             featBoardLinksDesc: '将 WxH/M 格式的棋盘文字转换为可点击链接，并显示雷密度百分比。',
             featEventStats: '活动分数预测',
             featEventStatsDesc: '在活动排行榜中添加预测活动结束时总分的列。',
-            featQuestCollect: '一键领取全部任务',
-            featQuestCollectDesc: '在每个任务表格中添加一键领取所有可用奖励的按钮。',
+            featQuestAll: '一键领取按钮',
+            featQuestAllDesc: '在表格中自动添加一键领取按钮：先检测第一列，没有则检测最后一列。',
             featMyRank: '自动滚动到我的排名',
             featMyRankDesc: '当排名加载或发生变化时，自动将排行榜滚动到您的位置。',
             questCollectAllBtn: '全部领取',
@@ -313,8 +313,8 @@
             featBoardLinksDesc: '將 WxH/M 格式的棋盤文字轉換為可點擊連結，並顯示地雷密度百分比。',
             featEventStats: '活動分數預測',
             featEventStatsDesc: '在活動排行榜中新增預測活動結束時總分的欄位。',
-            featQuestCollect: '一鍵領取全部任務',
-            featQuestCollectDesc: '在每個任務表格中新增一鍵領取所有可用獎勵的按鈕。',
+            featQuestAll: '一鍵領取全部任務',
+            featQuestAllDesc: '在每個任務表格中新增一鍵領取所有可用獎勵的按鈕。',
             featMyRank: '自動捲動至我的排名',
             featMyRankDesc: '當排名載入或變更時，自動將排行榜捲動至您的位置。',
             questCollectAllBtn: '全部領取',
@@ -344,8 +344,8 @@
             featBoardLinksDesc: 'WxH/M 形式のボードテキストをクリック可能なリンクに変換し、地雷密度のパーセンテージを表示します。',
             featEventStats: 'イベントスコア予測',
             featEventStatsDesc: 'イベントリーダーボードにイベント終了時の予測スコア列を追加します。',
-            featQuestCollect: 'クエスト一括収集',
-            featQuestCollectDesc: '各クエストテーブルで利用可能なすべての報酬をワンクリックで収集するボタンを追加します。',
+            featQuestAll: 'クエスト一括収集',
+            featQuestAllDesc: '各クエストテーブルで利用可能なすべての報酬をワンクリックで収集するボタンを追加します。',
             featMyRank: '自分のランクへ自動スクロール',
             featMyRankDesc: 'ランクが読み込まれたり変更されたりすると、リーダーボードが自分のランク行に自動的にスクロールします。',
             questCollectAllBtn: '一括受け取り',
@@ -375,8 +375,8 @@
             featBoardLinksDesc: 'WxH/M 형식의 보드 텍스트를 클릭 가능한 링크로 변환하고 지뢰 밀도 비율을 표시합니다.',
             featEventStats: '이벤트 점수 예측',
             featEventStatsDesc: '이벤트 리더보드에 이벤트 종료 시 예상 점수 열을 추가합니다.',
-            featQuestCollect: '퀘스트 전체 수집',
-            featQuestCollectDesc: '각 퀘스트 테이블에서 사용 가능한 모든 보상을 한 번에 수집하는 버튼을 추가합니다.',
+            featQuestAll: '퀘스트 전체 수집',
+            featQuestAllDesc: '각 퀘스트 테이블에서 사용 가능한 모든 보상을 한 번에 수집하는 버튼을 추가합니다.',
             featMyRank: '내 순위로 자동 스크롤',
             featMyRankDesc: '순위가 로드되거나 변경될 때 리더보드가 내 순위 행으로 자동 스크롤됩니다.',
             questCollectAllBtn: '전부 수집',
@@ -905,34 +905,56 @@
 
     // ── Quest collect-all ──────────────────────────────────────────────────────
 
-    /**
-     * On /quests pages, injects a "领取全部" button next to each quest-table
-     * heading whenever the table contains any collectable rows.  Clicking the
-     * button auto-clicks every visible collect_btn in that table.  The button
-     * is removed automatically once there are no more rows left to collect.
-     */
-    function initQuestCollect() {
-        const BTN_CLASS = 'ms-quest-collect-all';
+    // ── Collect-all buttons (Quests & Marketplace) ────────────────────────────
 
-        /** Returns all desktop-visible collect buttons in the table's last column. */
-        function getCollectBtns(table) {
-            return table.querySelectorAll('tbody td:last-child button[class*="collect_btn"]');
+    /**
+     * Injects a "Collect All" button into each table that contains collectable
+     * rows, on both the Quests and Marketplace pages. The button auto-clicks
+     * every visible collect_btn in its table and is removed automatically once
+     * no collectable rows remain.
+     *
+     * Per-page config:
+     *   pathRe        — URL path pattern that activates this config.
+     *   featKey       — localStorage feature-enable key.
+     *   btnClass      — CSS class applied to the injected button.
+     *   getRoot()     — returns the container to search for tables (null = skip).
+     *   getAnchorCell(table) — returns the cell to append the button into.
+     */
+    function initCollectAll() {
+        const BTN_CLASS = 'ms-collect-all';
+
+        function getPlacement(table) {
+            const firstColSelector = 'tbody td:first-child button[id^="collect_btn_"]';
+            const firstColBtns = table.querySelectorAll(firstColSelector);
+            if (firstColBtns.length) {
+                const cell = table.querySelector('tr:first-child th:first-child') || table.querySelector('tr:first-child td:first-child');
+                if (cell) return { cell, collectBtnSelector: firstColSelector, clickById: true };
+            }
+
+            const lastColSelector = 'tbody td:last-child button[class*="collect_btn"]';
+            const lastColBtns = table.querySelectorAll(lastColSelector);
+            if (lastColBtns.length) {
+                const cell = table.querySelector('tr:first-child th:last-child') || table.querySelector('tr:first-child td:last-child');
+                if (cell) return { cell, collectBtnSelector: lastColSelector, clickById: false };
+            }
+
+            return null;
         }
 
-        /**
-         * Adds or removes the "collect all" button in the last <th> of the
-         * table's header row, depending on whether any collectable rows exist.
-         */
         function processTable(table) {
-            const th = table.querySelector('thead tr th:last-child');
-            if (!th) return;
+            const existingBtns = table.querySelectorAll('.' + BTN_CLASS);
+            const placement = getPlacement(table);
 
-            const collectBtns = getCollectBtns(table);
-            let allBtn = th.querySelector('.' + BTN_CLASS);
-
-            if (collectBtns.length === 0) {
-                if (allBtn) allBtn.remove();
+            if (!placement) {
+                existingBtns.forEach(el => el.remove());
                 return;
+            }
+
+            const { cell, collectBtnSelector, clickById } = placement;
+            let allBtn = cell.querySelector('.' + BTN_CLASS);
+
+            if (existingBtns.length && !allBtn) {
+                existingBtns.forEach(el => el.remove());
             }
 
             if (!allBtn) {
@@ -941,27 +963,31 @@
                 allBtn.style.cssText = 'vertical-align:middle;';
                 allBtn.textContent = t('questCollectAllBtn');
                 allBtn.addEventListener('click', () => {
-                    getCollectBtns(table).forEach(btn => btn.click());
+                    if (clickById) {
+                        table.querySelectorAll(collectBtnSelector).forEach(btn => {
+                            if (!btn.id) return;
+                            const target = document.getElementById(btn.id);
+                            if (target) target.click();
+                        });
+                        return;
+                    }
+                    table.querySelectorAll(collectBtnSelector).forEach(btn => btn.click());
                 });
-                th.appendChild(allBtn);
+                cell.appendChild(allBtn);
             }
         }
 
         function trySetup() {
-            if (!/\/quests(\/|$|\?)/.test(location.pathname)) return;
-            const block = document.getElementById('QuestsBlock');
-            if (!block) return;
-
-            if (!featEnabled(FEAT_QUEST_COLLECT_KEY)) {
-                block.querySelectorAll('.' + BTN_CLASS).forEach(el => el.remove());
+            if (!featEnabled(FEAT_COLLECT_ALL_KEY)) {
+                document.querySelectorAll('.' + BTN_CLASS).forEach(el => el.remove());
                 return;
             }
 
-            block.querySelectorAll('table.table').forEach(processTable);
+            document.querySelectorAll('table.table').forEach(processTable);
         }
 
         // Registered with the shared dispatcher — re-evaluates on every DOM change
-        // so the button disappears after all quests in a table have been collected.
+        // so buttons appear/disappear as rows become collectable or are claimed.
         onDomChange(trySetup);
         trySetup();
     }
@@ -1365,9 +1391,9 @@
                 desc: t('featEventStatsDesc'),
             },
             {
-                key: FEAT_QUEST_COLLECT_KEY,
-                label: t('featQuestCollect'),
-                desc: t('featQuestCollectDesc'),
+                key: FEAT_COLLECT_ALL_KEY,
+                label: t('featQuestAll'),
+                desc: t('featQuestAllDesc'),
             },
             {
                 key: FEAT_MY_RANK_KEY,
@@ -1511,7 +1537,7 @@
 
         initPageFeatures();
         initEventStats();
-        initQuestCollect();
+        initCollectAll();
         initMyRankClick();
         initSettings();
         initSellMaxBtn();
