@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.4
+// @version      2.0.5
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -451,10 +451,20 @@
         return s;
     }
 
+    /** Initializes Bootstrap tooltip behavior for board-link density hints. */
+    function initBoardTooltip(abbr) {
+        if (!abbr || !window.jQuery?.fn.tooltip) return;
+        const $abbr = window.jQuery(abbr);
+        $abbr.tooltip({ container: 'body', trigger: 'hover' });
+        abbr.addEventListener('click', () => $abbr.tooltip('hide'));
+    }
+
     /** Replaces each WxH/M occurrence in a text node with a link and optionally a density span. */
     function processTextNode(node) {
         const parent = node.parentNode;
         if (!parent) return;
+        // Prevent generating nested <a> tags from text already inside links.
+        if (parent.nodeType === Node.ELEMENT_NODE && parent.closest('a')) return;
 
         const text = node.textContent;
         const matches = [...text.matchAll(BOARD_RE_G)];
@@ -475,9 +485,7 @@
         }
         if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
         parent.replaceChild(frag, node);
-        if (tooltipElems.length && window.jQuery?.fn.tooltip) {
-            window.jQuery(tooltipElems).tooltip({ container: 'body' });
-        }
+        tooltipElems.forEach(initBoardTooltip);
     }
 
     /**
@@ -503,9 +511,7 @@
                 abbr.textContent = a.textContent;
                 a.textContent = '';
                 a.appendChild(abbr);
-                if (window.jQuery?.fn.tooltip) {
-                    window.jQuery(abbr).tooltip({ container: 'body' });
-                }
+                initBoardTooltip(abbr);
             }
         }
 
