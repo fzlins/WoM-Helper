@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
+// @version      2.1.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -1425,6 +1425,14 @@
         const BTN_CLASS = 'ms-player-link-copy';
         const PLAYER_PATH_RE = /^\/(?:[a-z]{2}\/)?player\/\d+\/?$/;
 
+        function setCopyFeedback(btn, copied) {
+            btn.title = t(copied ? 'playerLinkCopiedTitle' : 'playerLinkCopyTitle');
+            btn.style.color = copied ? '#3c763d' : '#777';
+            btn.innerHTML = copied
+                ? `<i class="glyphicon glyphicon-ok"></i><span style="margin-left:3px;">${t('playerLinkCopiedTitle')}</span>`
+                : '<i class="glyphicon glyphicon-copy"></i>';
+        }
+
         function copyText(text) {
             if (navigator.clipboard?.writeText) {
                 return navigator.clipboard.writeText(text);
@@ -1462,17 +1470,16 @@
             btn.href = 'javascript:void(0)';
             btn.className = BTN_CLASS;
             btn.setAttribute('data-ms-copy-for', a.id);
-            btn.title = t('playerLinkCopyTitle');
-            btn.innerHTML = '<i class="glyphicon glyphicon-copy"></i>';
             btn.style.cssText = 'margin-left:4px;color:#777;text-decoration:none;cursor:pointer;';
+            setCopyFeedback(btn, false);
             btn.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
+                setCopyFeedback(btn, true);
                 copyText(a.href).then(() => {
-                    btn.title = t('playerLinkCopiedTitle');
-                    setTimeout(() => { btn.title = t('playerLinkCopyTitle'); }, 1200);
+                    setTimeout(() => { setCopyFeedback(btn, false); }, 1200);
                 }).catch(() => {
-                    // Silent failure to avoid breaking page interactions.
+                    setCopyFeedback(btn, false);
                 });
             });
             a.insertAdjacentElement('afterend', btn);
