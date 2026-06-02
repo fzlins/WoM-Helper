@@ -1,8 +1,8 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.0.5
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, and adds a helper settings panel on minesweeper.online
+// @version      2.1.0
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -31,6 +31,7 @@
     const FEAT_AUTO_DUEL_KEY = 'ms-feat-auto-duel';
     const FEAT_SELL_MAX_KEY = 'ms-feat-sell-max';
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
+    const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -84,6 +85,10 @@
             featSellMaxDesc: 'In the Sell modal on the Marketplace page, adds a ▲ button next to each quantity field to fill it with the maximum you own, and a 🏷 button next to each price field to auto-fetch the current market price.',
             featQuestAdvisor: 'Quest Advisor',
             featQuestAdvisorDesc: 'On the Equipment page, shows a panel where you enter a Minecoin target and number of plays, and it recommends the optimal board based on your current equipment bonus.',
+            featPlayerLinkCopy: 'Player link copy icon',
+            featPlayerLinkCopyDesc: 'Adds a copy icon after player-name links (id starts with player_link_) so you can copy the full profile URL with one click.',
+            playerLinkCopyTitle: 'Copy full profile link',
+            playerLinkCopiedTitle: 'Copied',
             questAdvisorLabel: 'Quest Advisor',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Target',
@@ -115,6 +120,10 @@
             featSellMaxDesc: 'Im Verkaufsdialog auf der Marktplatz-Seite wird eine ▲-Schaltfläche neben jedem Mengenfeld hinzugefügt, um die maximal besessene Menge einzutragen, sowie eine 🏷-Schaltfläche neben jedem Preisfeld zum automatischen Abrufen des aktuellen Marktpreises.',
             featQuestAdvisor: 'Quest-Berater',
             featQuestAdvisorDesc: 'Auf der Ausrüstungsseite erscheint ein Panel, in dem du ein Minecoin-Ziel und die Anzahl der Spielrunden eingibst – das optimale Spielfeld wird basierend auf deinem aktuellen Ausrüstungsbonus empfohlen.',
+            featPlayerLinkCopy: 'Symbol zum Kopieren des Spieler-Links',
+            featPlayerLinkCopyDesc: 'Fügt hinter Spieler-Links (ID beginnt mit player_link_) ein Kopiersymbol hinzu, um die vollständige Profil-URL mit einem Klick zu kopieren.',
+            playerLinkCopyTitle: 'Vollständigen Profil-Link kopieren',
+            playerLinkCopiedTitle: 'Kopiert',
             questAdvisorLabel: 'Quest-Berater',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Ziel',
@@ -146,6 +155,10 @@
             featSellMaxDesc: 'В диалоге продажи на странице Маркетплейса добавляет кнопку ▲ рядом с каждым полем количества для заполнения максимально возможного, и кнопку 🏷 рядом с полем цены для автоматического получения текущей рыночной цены.',
             featQuestAdvisor: 'Советник',
             featQuestAdvisorDesc: 'На странице снаряжения появляется панель: укажи целевое количество Minecoin и число попыток — скрипт подберёт оптимальное поле с учётом твоего текущего бонуса снаряжения.',
+            featPlayerLinkCopy: 'Значок копирования ссылки игрока',
+            featPlayerLinkCopyDesc: 'Добавляет значок копирования после ссылок на игрока (id начинается с player_link_), чтобы в один клик копировать полный URL профиля.',
+            playerLinkCopyTitle: 'Скопировать полную ссылку профиля',
+            playerLinkCopiedTitle: 'Скопировано',
             questAdvisorLabel: 'Советник',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Цель',
@@ -177,6 +190,10 @@
             featSellMaxDesc: 'En el modal de venta de la página del Mercado, añade un botón ▲ junto a cada campo de cantidad para rellenar el máximo disponible, y un botón 🏷 junto a cada campo de precio para obtener automáticamente el precio de mercado actual.',
             featQuestAdvisor: 'Asesor',
             featQuestAdvisorDesc: 'En la página de Equipamiento aparece un panel: introduce un objetivo de Minecoin y el número de partidas, y obtendrás la recomendación del tablero óptimo según tu bono de equipo actual.',
+            featPlayerLinkCopy: 'Icono para copiar enlace de jugador',
+            featPlayerLinkCopyDesc: 'Añade un icono de copia después de los enlaces de jugador (id empieza por player_link_) para copiar la URL completa del perfil con un clic.',
+            playerLinkCopyTitle: 'Copiar enlace completo del perfil',
+            playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Asesor',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Objetivo',
@@ -208,6 +225,10 @@
             featSellMaxDesc: 'No modal de venda da página do Mercado, adiciona um botão ▲ junto a cada campo de quantidade para preencher o máximo disponível, e um botão 🏷 junto a cada campo de preço para obter automaticamente o preço de mercado atual.',
             featQuestAdvisor: 'Consultor',
             featQuestAdvisorDesc: 'Na página de Equipamento surge um painel: insira uma meta de Minecoin e o número de jogadas para receber a recomendação do tabuleiro ideal com base no seu bónus de equipamento atual.',
+            featPlayerLinkCopy: 'Ícone de copiar link do jogador',
+            featPlayerLinkCopyDesc: 'Adiciona um ícone de cópia após links de jogador (id começa com player_link_) para copiar a URL completa do perfil com um clique.',
+            playerLinkCopyTitle: 'Copiar link completo do perfil',
+            playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Consultor',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Meta',
@@ -239,6 +260,10 @@
             featSellMaxDesc: 'Nel modale di vendita della pagina Marketplace, aggiunge un pulsante ▲ accanto a ogni campo quantità per inserire il massimo disponibile, e un pulsante 🏷 accanto a ogni campo prezzo per recuperare automaticamente il prezzo di mercato attuale.',
             featQuestAdvisor: 'Consulente',
             featQuestAdvisorDesc: 'Nella pagina Equipaggiamento compare un pannello: inserisci un obiettivo di Minecoin e il numero di partite per ricevere il consiglio sul campo ottimale in base al tuo bonus equipaggiamento attuale.',
+            featPlayerLinkCopy: 'Icona copia link giocatore',
+            featPlayerLinkCopyDesc: 'Aggiunge un\'icona di copia dopo i link del giocatore (id che inizia con player_link_) per copiare con un clic l\'URL completo del profilo.',
+            playerLinkCopyTitle: 'Copia link completo del profilo',
+            playerLinkCopiedTitle: 'Copiato',
             questAdvisorLabel: 'Consulente',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Obiettivo',
@@ -270,6 +295,10 @@
             featSellMaxDesc: "Dans la fenêtre de vente de la page Marketplace, ajoute un bouton ▲ à côté de chaque champ de quantité pour remplir le maximum disponible, et un bouton 🏷 à côté de chaque champ de prix pour récupérer automatiquement le prix du marché actuel.",
             featQuestAdvisor: 'Conseiller',
             featQuestAdvisorDesc: 'Sur la page Équipement, un panneau apparaît : saisissez un objectif de Minecoin et le nombre de parties pour obtenir la recommandation du plateau optimal selon votre bonus d\'équipement actuel.',
+            featPlayerLinkCopy: 'Icône de copie du lien joueur',
+            featPlayerLinkCopyDesc: 'Ajoute une icône de copie après les liens joueur (id commençant par player_link_) pour copier en un clic l\'URL complète du profil.',
+            playerLinkCopyTitle: 'Copier le lien complet du profil',
+            playerLinkCopiedTitle: 'Copié',
             questAdvisorLabel: 'Conseiller',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: 'Objectif',
@@ -301,6 +330,10 @@
             featSellMaxDesc: '在市场页面的出售弹窗中，每行数量输入框旁添加 ▲ 按钮以自动填入您拥有的最大数量，价格输入框旁添加 🏷 按钮以自动获取当前市场价格。',
             featQuestAdvisor: '任务顾问',
             featQuestAdvisorDesc: '在装备页面显示一个面板：输入 Minecoin 目标和游玩次数，根据当前装备加成推荐最优棋盘。',
+            featPlayerLinkCopy: '玩家链接复制图标',
+            featPlayerLinkCopyDesc: '在玩家名称链接（id 以 player_link_ 开头）后添加复制图标，一键复制完整个人主页链接。',
+            playerLinkCopyTitle: '复制完整个人主页链接',
+            playerLinkCopiedTitle: '已复制',
             questAdvisorLabel: '任务顾问',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目标',
@@ -332,6 +365,10 @@
             featSellMaxDesc: '在市場頁面的出售彈窗中，每行數量輸入框旁新增 ▲ 按鈕以自動填入您擁有的最大數量，價格輸入框旁新增 🏷 按鈕以自動取得目前市場價格。',
             featQuestAdvisor: '任務顧問',
             featQuestAdvisorDesc: '在裝備頁面顯示一個面板：輸入 Minecoin 目標和遊玩次數，根據目前裝備加成推薦最佳棋盤。',
+            featPlayerLinkCopy: '玩家連結複製圖示',
+            featPlayerLinkCopyDesc: '在玩家名稱連結（id 以 player_link_ 開頭）後方新增複製圖示，一鍵複製完整個人頁面連結。',
+            playerLinkCopyTitle: '複製完整個人頁面連結',
+            playerLinkCopiedTitle: '已複製',
             questAdvisorLabel: '任務顧問',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目標',
@@ -363,6 +400,10 @@
             featSellMaxDesc: 'マーケットプレイスページの売却ダイアログで、各数量フィールドの横に所有する最大数量を入力する ▲ ボタンを追加し、各価格フィールドの横に現在の市場価格を自動取得する 🏷 ボタンを追加します。',
             featQuestAdvisor: 'クエストアドバイザー',
             featQuestAdvisorDesc: '装備ページにパネルを表示します：Minecoin の目標値とプレイ回数を入力すると、現在の装備ボーナスに基づいて最適なボードを推薦します。',
+            featPlayerLinkCopy: 'プレイヤーリンクのコピーアイコン',
+            featPlayerLinkCopyDesc: 'プレイヤー名リンク（id が player_link_ で始まる）の後ろにコピーアイコンを追加し、プロフィールの完全なURLをワンクリックでコピーできます。',
+            playerLinkCopyTitle: 'プロフィールの完全なリンクをコピー',
+            playerLinkCopiedTitle: 'コピーしました',
             questAdvisorLabel: 'クエストアドバイザー',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '目標',
@@ -394,6 +435,10 @@
             featSellMaxDesc: '마켓플레이스 페이지의 판매 모달에서 각 수량 필드 옆에 최대 보유 수량을 자동 입력하는 ▲ 버튼을 추가하고, 각 가격 필드 옆에 현재 시장 가격을 자동으로 가져오는 🏷 버튼을 추가합니다.',
             featQuestAdvisor: '퀘스트 어드바이저',
             featQuestAdvisorDesc: '장비 페이지에 패널이 표시됩니다: Minecoin 목표와 플레이 횟수를 입력하면 현재 장비 보너스를 기반으로 최적의 보드를 추천합니다.',
+            featPlayerLinkCopy: '플레이어 링크 복사 아이콘',
+            featPlayerLinkCopyDesc: '플레이어 이름 링크(id가 player_link_로 시작) 뒤에 복사 아이콘을 추가해 프로필 전체 URL을 한 번에 복사합니다.',
+            playerLinkCopyTitle: '프로필 전체 링크 복사',
+            playerLinkCopiedTitle: '복사됨',
             questAdvisorLabel: '퀘스트 어드바이저',
             questAdvisorGoalMC: 'MC',
             questAdvisorTarget: '목표',
@@ -1369,6 +1414,102 @@
         onDomChange(trySetup);
         trySetup();
     }
+
+    // ── Player link copy icon ─────────────────────────────────────────────
+
+    /**
+     * Appends a copy icon after profile links with id="player_link_*".
+     * Clicking the icon copies the absolute profile URL.
+     */
+    function initPlayerLinkCopy() {
+        const BTN_CLASS = 'ms-player-link-copy';
+        const PLAYER_PATH_RE = /^\/(?:[a-z]{2}\/)?player\/\d+\/?$/;
+
+        function copyText(text) {
+            if (navigator.clipboard?.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise((resolve, reject) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                let ok = false;
+                try {
+                    ok = document.execCommand('copy');
+                } catch (_) {
+                    ok = false;
+                }
+                ta.remove();
+                if (ok) resolve();
+                else reject(new Error('copy failed'));
+            });
+        }
+
+        function isTargetAnchor(a) {
+            if (!a || a.tagName !== 'A') return false;
+            if (!a.id || !a.id.startsWith('player_link_')) return false;
+            return PLAYER_PATH_RE.test(a.pathname);
+        }
+
+        function addCopyIcon(a) {
+            const marker = `data-ms-copy-for="${a.id}"`;
+            if (a.parentElement?.querySelector(`.${BTN_CLASS}[${marker}]`)) return;
+
+            const btn = document.createElement('a');
+            btn.href = 'javascript:void(0)';
+            btn.className = BTN_CLASS;
+            btn.setAttribute('data-ms-copy-for', a.id);
+            btn.title = t('playerLinkCopyTitle');
+            btn.innerHTML = '<i class="glyphicon glyphicon-copy"></i>';
+            btn.style.cssText = 'margin-left:4px;color:#777;text-decoration:none;cursor:pointer;';
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                copyText(a.href).then(() => {
+                    btn.title = t('playerLinkCopiedTitle');
+                    setTimeout(() => { btn.title = t('playerLinkCopyTitle'); }, 1200);
+                }).catch(() => {
+                    // Silent failure to avoid breaking page interactions.
+                });
+            });
+            a.insertAdjacentElement('afterend', btn);
+        }
+
+        function processNode(node) {
+            if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+            if (node.tagName === 'A') {
+                if (isTargetAnchor(node)) addCopyIcon(node);
+                return;
+            }
+            node.querySelectorAll('a[id^="player_link_"]').forEach(a => {
+                if (isTargetAnchor(a)) addCopyIcon(a);
+            });
+        }
+
+        function trySetup(mutations) {
+            if (!featEnabled(FEAT_PLAYER_LINK_COPY_KEY)) {
+                document.querySelectorAll('.' + BTN_CLASS).forEach(el => el.remove());
+                return;
+            }
+
+            if (!mutations) {
+                processNode(document.body);
+                return;
+            }
+
+            for (const m of mutations) {
+                if (!m.addedNodes) continue;
+                m.addedNodes.forEach(processNode);
+            }
+        }
+
+        onDomChange(trySetup);
+        trySetup();
+    }
+
     // ── Settings panel ─────────────────────────────────────────────────────
 
     /**
@@ -1425,6 +1566,11 @@
                 key: FEAT_QUEST_ADVISOR_KEY,
                 label: t('featQuestAdvisor'),
                 desc: t('featQuestAdvisorDesc'),
+            },
+            {
+                key: FEAT_PLAYER_LINK_COPY_KEY,
+                label: t('featPlayerLinkCopy'),
+                desc: t('featPlayerLinkCopyDesc'),
             },
         ];
 
@@ -1548,6 +1694,7 @@
         initSettings();
         initSellMaxBtn();
         initQuestAdvisor();
+        initPlayerLinkCopy();
 
         // Single shared body observer.
         // URL-change detection here replaces unsafe pushState/replaceState monkey-patching.

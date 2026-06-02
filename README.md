@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, and lets you toggle each feature from the Settings page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, adds a copy icon for player profile links, and lets you toggle each feature from the Settings page.
 
 ## Settings
 
@@ -14,6 +14,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - My-rank auto-scroll
 - Sell max & market price
 - Quest Advisor
+- Player link copy icon
 
 ## Features
 
@@ -26,6 +27,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - **Collect-all buttons** — On any page where collectable rows are shown in a table, a *Collect All* button is added automatically. The script checks the first column first; if no collect buttons are found there, it checks the last column. If neither column has collect buttons, no *Collect All* button is shown.
 - **Sell max & market price** — On the [Marketplace](https://minesweeper.online/marketplace) page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
 - **Quest Advisor** — On the [Equipment](https://minesweeper.online/equipment) page, a **Quest Advisor** row appears below the equipment heading. Choose a goal type (e.g. MC), enter a target amount, and select how many times you plan to play; the advisor automatically reads your current Minecoin bonus from the equipment stats and shows the recommended board as a clickable link.
+- **Player link copy icon** — Anywhere on the site, if a player-name link matches the profile-link pattern (an `<a>` with an id starting with `player_link_` and a profile URL like `/player/123456` or `/cn/player/123456`), a copy icon appears right after the name. Click it to copy the full absolute profile URL.
 
 ## Installation
 
