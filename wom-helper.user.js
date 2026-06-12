@@ -504,6 +504,12 @@
         abbr.addEventListener('click', () => $abbr.tooltip('hide'));
     }
 
+    /** Hides every visible Bootstrap 3 tooltip on the page. */
+    function hideAllTooltips() {
+        if (!window.jQuery?.fn.tooltip) return;
+        window.jQuery('[data-original-title]').tooltip('hide');
+    }
+
     /** Replaces each WxH/M occurrence in a text node with a link and optionally a density span. */
     function processTextNode(node) {
         const parent = node.parentNode;
@@ -1710,6 +1716,7 @@
             const path = location.pathname;
             if (path !== _lastNavPath) {
                 _lastNavPath = path;
+                hideAllTooltips();
                 _boardLinksMode = getBoardLinksMode();
                 _isGamePage = /\/game(\/|$)/.test(path);
                 initPageFeatures();
@@ -1720,10 +1727,21 @@
 
         // Also handle back/forward navigation via the History API.
         window.addEventListener('popstate', () => {
+            hideAllTooltips();
             _boardLinksMode = getBoardLinksMode();
             _isGamePage = /\/game(\/|$)/.test(location.pathname);
             initPageFeatures();
         });
+
+        // Hide stale tooltips when the window or tab loses focus.
+        document.addEventListener('visibilitychange', () => { if (document.hidden) hideAllTooltips(); });
+        window.addEventListener('blur', hideAllTooltips);
+        // When any Bootstrap tooltip is about to appear, dismiss all others first.
+        if (window.jQuery?.fn.tooltip) {
+            window.jQuery(document).on('show.bs.tooltip', e => {
+                window.jQuery('[data-original-title]').not(e.target).tooltip('hide');
+            });
+        }
     }
 
     if (document.readyState === 'loading') {
