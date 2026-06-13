@@ -725,6 +725,12 @@
         initNF._done = true;
         let nfEnabled = localStorage.getItem(NF_KEY) === '1';
 
+        const updateNFBinding = () => {
+            // Only enable NF when the toggle exists on the current page.
+            const hasToggle = !!document.querySelector('.ms-nf-chk');
+            applyNF(hasToggle && nfEnabled);
+        };
+
         const syncAll = () => {
             document.querySelectorAll('.ms-nf-chk').forEach(c => { c.checked = nfEnabled; });
         };
@@ -733,7 +739,7 @@
             nfEnabled = this.checked;
             syncAll();
             localStorage.setItem(NF_KEY, nfEnabled ? '1' : '0');
-            applyNF(nfEnabled);
+            updateNFBinding();
         }
 
         function tryInsert() {
@@ -767,14 +773,15 @@
             }
 
             syncAll();
+            updateNFBinding();
             return true;
         }
 
         // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
         onDomChange(tryInsert);
-        onDomChange(() => applyNF(nfEnabled));
+        onDomChange(updateNFBinding);
         tryInsert();
-        applyNF(nfEnabled);
+        updateNFBinding();
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
