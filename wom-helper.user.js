@@ -2,13 +2,14 @@
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
 // @version      2.1.1
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, bridges the NFT edit page to an external board tool, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
 // @supportURL   https://github.com/fzlins/WoM-Helper/issues
 // @icon         https://minesweeper.online/favicon.ico
 // @match        https://minesweeper.online/*
+// @match        https://notavailablenam.github.io/minesweeper/*
 // @grant        none
 // ==/UserScript==
 
@@ -32,6 +33,9 @@
     const FEAT_SELL_MAX_KEY = 'ms-feat-sell-max';
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
     const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
+    const FEAT_NFT_BRIDGE_KEY = 'ms-feat-nft-bridge';
+
+    const NFT_TOOL_URL = 'https://notavailablenam.github.io/minesweeper/';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -87,6 +91,8 @@
             featQuestAdvisorDesc: 'On the Equipment page, shows a panel where you enter a Minecoin target and number of plays, and it recommends the optimal board based on your current equipment bonus.',
             featPlayerLinkCopy: 'Player link copy icon',
             featPlayerLinkCopyDesc: 'Adds a copy icon after player-name links (id starts with player_link_) so you can copy the full profile URL with one click.',
+            featNftBridge: 'NFT helper bridge',
+            featNftBridgeDesc: 'On the NFT edit page, adds an NFT Helper link that opens the external board calculator with your account ID and token limits prefilled.',
             playerLinkCopyTitle: 'Copy full profile link',
             playerLinkCopiedTitle: 'Copied',
             questAdvisorLabel: 'Quest Advisor',
@@ -94,6 +100,7 @@
             questAdvisorTarget: 'Target',
             questAdvisorPlay: 'play',
             questAdvisorPlays: 'plays',
+            nftHelperBtn: 'NFT Helper',
             
         },
         de: {
@@ -122,6 +129,8 @@
             featQuestAdvisorDesc: 'Auf der Ausrüstungsseite erscheint ein Panel, in dem du ein Minecoin-Ziel und die Anzahl der Spielrunden eingibst – das optimale Spielfeld wird basierend auf deinem aktuellen Ausrüstungsbonus empfohlen.',
             featPlayerLinkCopy: 'Symbol zum Kopieren des Spieler-Links',
             featPlayerLinkCopyDesc: 'Fügt hinter Spieler-Links (ID beginnt mit player_link_) ein Kopiersymbol hinzu, um die vollständige Profil-URL mit einem Klick zu kopieren.',
+            featNftBridge: 'NFT-Helfer-Verknüpfung',
+            featNftBridgeDesc: 'Fügt auf der NFT-Bearbeitungsseite einen NFT-Helper-Link hinzu, der den externen Board-Rechner mit deiner Account-ID und den Token-Limits vorausfüllt.',
             playerLinkCopyTitle: 'Vollständigen Profil-Link kopieren',
             playerLinkCopiedTitle: 'Kopiert',
             questAdvisorLabel: 'Quest-Berater',
@@ -129,6 +138,7 @@
             questAdvisorTarget: 'Ziel',
             questAdvisorPlay: 'Runde',
             questAdvisorPlays: 'Runden',
+            nftHelperBtn: 'NFT-Helfer',
 
         },
         ru: {
@@ -157,6 +167,8 @@
             featQuestAdvisorDesc: 'На странице снаряжения появляется панель: укажи целевое количество Minecoin и число попыток — скрипт подберёт оптимальное поле с учётом твоего текущего бонуса снаряжения.',
             featPlayerLinkCopy: 'Значок копирования ссылки игрока',
             featPlayerLinkCopyDesc: 'Добавляет значок копирования после ссылок на игрока (id начинается с player_link_), чтобы в один клик копировать полный URL профиля.',
+            featNftBridge: 'Связка с NFT Helper',
+            featNftBridgeDesc: 'На странице редактирования NFT добавляет ссылку NFT Helper, которая открывает внешний калькулятор поля с уже подставленными ID аккаунта и лимитами токенов.',
             playerLinkCopyTitle: 'Скопировать полную ссылку профиля',
             playerLinkCopiedTitle: 'Скопировано',
             questAdvisorLabel: 'Советник',
@@ -164,6 +176,7 @@
             questAdvisorTarget: 'Цель',
             questAdvisorPlay: 'партия',
             questAdvisorPlays: 'партии',
+            nftHelperBtn: 'NFT-помощник',
 
         },
         es: {
@@ -192,6 +205,8 @@
             featQuestAdvisorDesc: 'En la página de Equipamiento aparece un panel: introduce un objetivo de Minecoin y el número de partidas, y obtendrás la recomendación del tablero óptimo según tu bono de equipo actual.',
             featPlayerLinkCopy: 'Icono para copiar enlace de jugador',
             featPlayerLinkCopyDesc: 'Añade un icono de copia después de los enlaces de jugador (id empieza por player_link_) para copiar la URL completa del perfil con un clic.',
+            featNftBridge: 'Puente de NFT Helper',
+            featNftBridgeDesc: 'Añade en la página de edición de NFT un enlace NFT Helper que abre la calculadora externa con tu ID de cuenta y los límites de tokens ya rellenados.',
             playerLinkCopyTitle: 'Copiar enlace completo del perfil',
             playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Asesor',
@@ -199,6 +214,7 @@
             questAdvisorTarget: 'Objetivo',
             questAdvisorPlay: 'partida',
             questAdvisorPlays: 'partidas',
+            nftHelperBtn: 'Asistente NFT',
 
         },
         pt: {
@@ -227,6 +243,8 @@
             featQuestAdvisorDesc: 'Na página de Equipamento surge um painel: insira uma meta de Minecoin e o número de jogadas para receber a recomendação do tabuleiro ideal com base no seu bónus de equipamento atual.',
             featPlayerLinkCopy: 'Ícone de copiar link do jogador',
             featPlayerLinkCopyDesc: 'Adiciona um ícone de cópia após links de jogador (id começa com player_link_) para copiar a URL completa do perfil com um clique.',
+            featNftBridge: 'Ligação do NFT Helper',
+            featNftBridgeDesc: 'Adiciona na página de edição de NFT um link NFT Helper que abre a calculadora externa já preenchida com o ID da conta e os limites dos tokens.',
             playerLinkCopyTitle: 'Copiar link completo do perfil',
             playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Consultor',
@@ -234,6 +252,7 @@
             questAdvisorTarget: 'Meta',
             questAdvisorPlay: 'jogada',
             questAdvisorPlays: 'jogadas',
+            nftHelperBtn: 'Assistente NFT',
 
         },
         it: {
@@ -262,6 +281,8 @@
             featQuestAdvisorDesc: 'Nella pagina Equipaggiamento compare un pannello: inserisci un obiettivo di Minecoin e il numero di partite per ricevere il consiglio sul campo ottimale in base al tuo bonus equipaggiamento attuale.',
             featPlayerLinkCopy: 'Icona copia link giocatore',
             featPlayerLinkCopyDesc: 'Aggiunge un\'icona di copia dopo i link del giocatore (id che inizia con player_link_) per copiare con un clic l\'URL completo del profilo.',
+            featNftBridge: 'Collegamento NFT Helper',
+            featNftBridgeDesc: 'Nella pagina di modifica NFT aggiunge un link NFT Helper che apre il calcolatore esterno con ID account e limiti dei token già compilati.',
             playerLinkCopyTitle: 'Copia link completo del profilo',
             playerLinkCopiedTitle: 'Copiato',
             questAdvisorLabel: 'Consulente',
@@ -269,6 +290,7 @@
             questAdvisorTarget: 'Obiettivo',
             questAdvisorPlay: 'partita',
             questAdvisorPlays: 'partite',
+            nftHelperBtn: 'Assistente NFT',
 
         },
         fr: {
@@ -297,6 +319,8 @@
             featQuestAdvisorDesc: 'Sur la page Équipement, un panneau apparaît : saisissez un objectif de Minecoin et le nombre de parties pour obtenir la recommandation du plateau optimal selon votre bonus d\'équipement actuel.',
             featPlayerLinkCopy: 'Icône de copie du lien joueur',
             featPlayerLinkCopyDesc: 'Ajoute une icône de copie après les liens joueur (id commençant par player_link_) pour copier en un clic l\'URL complète du profil.',
+            featNftBridge: 'Passerelle NFT Helper',
+            featNftBridgeDesc: 'Ajoute sur la page d\'édition NFT un lien NFT Helper qui ouvre le calculateur externe avec votre identifiant de compte et vos limites de jetons préremplis.',
             playerLinkCopyTitle: 'Copier le lien complet du profil',
             playerLinkCopiedTitle: 'Copié',
             questAdvisorLabel: 'Conseiller',
@@ -304,6 +328,7 @@
             questAdvisorTarget: 'Objectif',
             questAdvisorPlay: 'partie',
             questAdvisorPlays: 'parties',
+            nftHelperBtn: 'Assistant NFT',
 
         },
         cn: {
@@ -332,6 +357,8 @@
             featQuestAdvisorDesc: '在装备页面显示一个面板：输入 Minecoin 目标和游玩次数，根据当前装备加成推荐最优棋盘。',
             featPlayerLinkCopy: '玩家链接复制图标',
             featPlayerLinkCopyDesc: '在玩家名称链接（id 以 player_link_ 开头）后添加复制图标，一键复制完整个人主页链接。',
+            featNftBridge: 'NFT 助手联动',
+            featNftBridgeDesc: '在 NFT 编辑页添加 NFT 助手链接，可自动带上账号 ID 和 8 个 Token 容量并打开外部棋盘工具。',
             playerLinkCopyTitle: '复制完整个人主页链接',
             playerLinkCopiedTitle: '已复制',
             questAdvisorLabel: '任务顾问',
@@ -339,6 +366,7 @@
             questAdvisorTarget: '目标',
             questAdvisorPlay: '局',
             questAdvisorPlays: '局',
+            nftHelperBtn: 'NFT 助手',
 
         },
         tw: {
@@ -367,6 +395,8 @@
             featQuestAdvisorDesc: '在裝備頁面顯示一個面板：輸入 Minecoin 目標和遊玩次數，根據目前裝備加成推薦最佳棋盤。',
             featPlayerLinkCopy: '玩家連結複製圖示',
             featPlayerLinkCopyDesc: '在玩家名稱連結（id 以 player_link_ 開頭）後方新增複製圖示，一鍵複製完整個人頁面連結。',
+            featNftBridge: 'NFT 助手連動',
+            featNftBridgeDesc: '在 NFT 編輯頁新增 NFT 助手連結，可自動帶入帳號 ID 與 8 個 Token 容量並開啟外部棋盤工具。',
             playerLinkCopyTitle: '複製完整個人頁面連結',
             playerLinkCopiedTitle: '已複製',
             questAdvisorLabel: '任務顧問',
@@ -374,6 +404,7 @@
             questAdvisorTarget: '目標',
             questAdvisorPlay: '局',
             questAdvisorPlays: '局',
+            nftHelperBtn: 'NFT 助手',
 
         },
         ja: {
@@ -402,6 +433,8 @@
             featQuestAdvisorDesc: '装備ページにパネルを表示します：Minecoin の目標値とプレイ回数を入力すると、現在の装備ボーナスに基づいて最適なボードを推薦します。',
             featPlayerLinkCopy: 'プレイヤーリンクのコピーアイコン',
             featPlayerLinkCopyDesc: 'プレイヤー名リンク（id が player_link_ で始まる）の後ろにコピーアイコンを追加し、プロフィールの完全なURLをワンクリックでコピーできます。',
+            featNftBridge: 'NFT Helper 連携',
+            featNftBridgeDesc: 'NFT 編集ページに NFT Helper リンクを追加し、アカウント ID と 8 個のトークン上限を入力済みの状態で外部ボード計算ツールを開きます。',
             playerLinkCopyTitle: 'プロフィールの完全なリンクをコピー',
             playerLinkCopiedTitle: 'コピーしました',
             questAdvisorLabel: 'クエストアドバイザー',
@@ -409,6 +442,7 @@
             questAdvisorTarget: '目標',
             questAdvisorPlay: '回',
             questAdvisorPlays: '回',
+            nftHelperBtn: 'NFTヘルパー',
 
         },
         ko: {
@@ -437,6 +471,8 @@
             featQuestAdvisorDesc: '장비 페이지에 패널이 표시됩니다: Minecoin 목표와 플레이 횟수를 입력하면 현재 장비 보너스를 기반으로 최적의 보드를 추천합니다.',
             featPlayerLinkCopy: '플레이어 링크 복사 아이콘',
             featPlayerLinkCopyDesc: '플레이어 이름 링크(id가 player_link_로 시작) 뒤에 복사 아이콘을 추가해 프로필 전체 URL을 한 번에 복사합니다.',
+            featNftBridge: 'NFT Helper 연동',
+            featNftBridgeDesc: 'NFT 편집 페이지에 NFT Helper 링크를 추가하여 계정 ID와 8개의 토큰 한도를 자동으로 채운 외부 보드 계산기를 엽니다.',
             playerLinkCopyTitle: '프로필 전체 링크 복사',
             playerLinkCopiedTitle: '복사됨',
             questAdvisorLabel: '퀘스트 어드바이저',
@@ -444,6 +480,7 @@
             questAdvisorTarget: '목표',
             questAdvisorPlay: '판',
             questAdvisorPlays: '판',
+            nftHelperBtn: 'NFT 도우미',
 
         },
     };
@@ -1523,6 +1560,187 @@
         trySetup();
     }
 
+    // ── NFT helper bridge ────────────────────────────────────────────────
+
+    function initNftHelperBridge() {
+        const BTN_ID = 'ms-nft-helper-link';
+        const PAGE_RE = /^\/(?:[a-z]{2}\/)?nft\/edit(?:\/)?$/;
+
+        function isPositiveIntegerString(value) {
+            return /^[1-9]\d*$/.test(value || '');
+        }
+
+        function isNonNegativeIntegerString(value) {
+            return /^\d+$/.test(value || '');
+        }
+
+        function extractAccountId() {
+            const candidates = document.querySelectorAll('a[href*="/player/"]');
+            for (const link of candidates) {
+                const href = link.getAttribute('href') || '';
+                const match = href.match(/\/player\/(\d+)\/?$/);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        function extractTokenLimit(index) {
+            const cell = document.getElementById(`nft_size_${index}`);
+            if (!cell) return null;
+
+            const text = cell.textContent.replace(/\s+/g, ' ').trim();
+            const slashMatch = text.match(/\/\s*(\d+)$/);
+            if (slashMatch) return slashMatch[1];
+
+            const currentMatch = text.match(/^(\d+)$/);
+            return currentMatch?.[1] || null;
+        }
+
+        function buildUrl() {
+            const accountId = extractAccountId();
+            if (!isPositiveIntegerString(accountId)) return null;
+
+            const tokens = [];
+            for (let index = 1; index <= 8; index++) {
+                const token = extractTokenLimit(index);
+                if (!isNonNegativeIntegerString(token)) return null;
+                tokens.push(token);
+            }
+
+            return `${NFT_TOOL_URL}?data=${[accountId, ...tokens].join(',')}`;
+        }
+
+        function findResetControl() {
+            const saveBtn = document.getElementById('nft_save_btn');
+            if (saveBtn) {
+                let sibling = saveBtn.nextElementSibling;
+                while (sibling) {
+                    const text = (sibling.textContent || sibling.value || sibling.title || '').replace(/\s+/g, ' ').trim();
+                    const hasEraserIcon = !!sibling.querySelector?.('.fa-eraser');
+                    if (/^reset$/i.test(text) || hasEraserIcon) return sibling;
+                    sibling = sibling.nextElementSibling;
+                }
+            }
+
+            const nftBlock = document.getElementById('NftBlock');
+            if (!nftBlock) return null;
+
+            return Array.from(nftBlock.querySelectorAll('button, input[type="button"], input[type="reset"]')).find(control => {
+                const text = (control.textContent || control.value || control.title || '').replace(/\s+/g, ' ').trim();
+                return /^reset$/i.test(text) || !!control.querySelector?.('.fa-eraser');
+            }) || null;
+        }
+
+        function tryInsert() {
+            if (!PAGE_RE.test(location.pathname)) return;
+
+            const existing = document.getElementById(BTN_ID);
+            if (!featEnabled(FEAT_NFT_BRIDGE_KEY)) {
+                existing?.remove();
+                return;
+            }
+
+            const table = document.getElementById('nft_size_1')?.closest('table');
+            if (!table) return;
+
+            const url = buildUrl();
+            if (!url) {
+                existing?.remove();
+                return;
+            }
+
+            const resetControl = findResetControl();
+
+            if (existing) {
+                existing.dataset.url = url;
+                if (resetControl && existing.previousElementSibling !== resetControl) {
+                    const oldParent = existing.parentElement;
+                    resetControl.insertAdjacentElement('afterend', existing);
+                    if (oldParent && !oldParent.id && !oldParent.childElementCount && !oldParent.textContent.trim()) {
+                        oldParent.remove();
+                    }
+                }
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.id = BTN_ID;
+            link.href = 'javascript:void(0)';
+            link.textContent = t('nftHelperBtn');
+            link.className = resetControl?.className || 'btn btn-default';
+            link.style.cssText = 'margin-left:6px;';
+            link.dataset.url = url;
+            link.addEventListener('click', () => {
+                const targetUrl = link.dataset.url;
+                if (targetUrl) window.open(targetUrl, '_blank');
+            });
+
+            if (resetControl) {
+                resetControl.insertAdjacentElement('afterend', link);
+                return;
+            }
+
+            const fallbackWrap = document.createElement('div');
+            fallbackWrap.style.cssText = 'margin:8px 0;text-align:right;';
+            fallbackWrap.appendChild(link);
+            table.insertAdjacentElement('beforebegin', fallbackWrap);
+        }
+
+        onDomChange(tryInsert);
+        tryInsert();
+    }
+
+    function initNftToolAutofill() {
+        const PAGE_RE = /^\/minesweeper\/?$/;
+        const HOST = 'notavailablenam.github.io';
+        let filled = false;
+
+        function isPositiveIntegerString(value) {
+            return /^[1-9]\d*$/.test(value || '');
+        }
+
+        function isNonNegativeIntegerString(value) {
+            return /^\d+$/.test(value || '');
+        }
+
+        function parseData() {
+            const raw = new URLSearchParams(location.search).get('data');
+            if (!raw) return null;
+
+            const values = raw.split(',').map(value => value.trim());
+            if (values.length !== 9) return null;
+            if (!isPositiveIntegerString(values[0])) return null;
+            if (!values.slice(1).every(isNonNegativeIntegerString)) return null;
+            return values;
+        }
+
+        function setInputValue(input, value) {
+            if (!input) return;
+            input.value = value;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function tryFill() {
+            if (filled) return;
+            if (location.hostname !== HOST || !PAGE_RE.test(location.pathname)) return;
+
+            const values = parseData();
+            if (!values) return;
+
+            const accountInput = document.getElementById('accountLink');
+            const tokenInputs = Array.from({ length: 8 }, (_, index) => document.getElementById(`token_${index + 1}`));
+            if (!accountInput || tokenInputs.some(input => !input)) return;
+
+            setInputValue(accountInput, values[0]);
+            tokenInputs.forEach((input, index) => setInputValue(input, values[index + 1]));
+            filled = true;
+        }
+
+        onDomChange(tryFill);
+        tryFill();
+    }
+
     // ── Settings panel ─────────────────────────────────────────────────────
 
     /**
@@ -1584,6 +1802,11 @@
                 key: FEAT_PLAYER_LINK_COPY_KEY,
                 label: t('featPlayerLinkCopy'),
                 desc: t('featPlayerLinkCopyDesc'),
+            },
+            {
+                key: FEAT_NFT_BRIDGE_KEY,
+                label: t('featNftBridge'),
+                desc: t('featNftBridgeDesc'),
             },
         ];
 
@@ -1708,6 +1931,8 @@
         initSellMaxBtn();
         initQuestAdvisor();
         initPlayerLinkCopy();
+        initNftHelperBridge();
+        initNftToolAutofill();
 
         // Single shared body observer.
         // URL-change detection here replaces unsafe pushState/replaceState monkey-patching.
