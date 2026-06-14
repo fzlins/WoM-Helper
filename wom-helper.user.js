@@ -1,8 +1,8 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.2.1
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, adds a Board Calculator shortcut on the source page, and adds a helper settings panel on minesweeper.online
+// @version      2.2.2
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, adds a local Board Generator, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -32,7 +32,8 @@
     const FEAT_SELL_MAX_KEY = 'ms-feat-sell-max';
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
     const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
-    const FEAT_BOARD_CALCULATOR_BRIDGE_KEY = 'ms-feat-board-calculator-bridge';
+    const FEAT_BOARD_GENERATOR_KEY = 'ms-feat-board-generator';
+    const FEAT_BOARD_GENERATOR_LEGACY_KEY = 'ms-feat-board-calculator';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -41,6 +42,13 @@
     const PRICE_FETCH_GAP_MS = 150; // ms between sequential market price fetches (avoid WS throttling)
     const MIN_ELAPSED_MS = 60_000; // prevents div-by-zero at event period start
     const EVENT_START_DAY = 4; // events begin on the 4th of each month
+
+    if (localStorage.getItem(FEAT_BOARD_GENERATOR_KEY) === null) {
+        const legacyBoardGeneratorSetting = localStorage.getItem(FEAT_BOARD_GENERATOR_LEGACY_KEY);
+        if (legacyBoardGeneratorSetting !== null) {
+            localStorage.setItem(FEAT_BOARD_GENERATOR_KEY, legacyBoardGeneratorSetting);
+        }
+    }
 
     /**
      * Returns true when the feature is enabled.
@@ -88,8 +96,8 @@
             featQuestAdvisorDesc: 'On the Equipment page, shows a panel where you enter a Minecoin target and number of plays, and it recommends the optimal board based on your current equipment bonus.',
             featPlayerLinkCopy: 'Player link copy icon',
             featPlayerLinkCopyDesc: 'Adds a copy icon after player-name links (id starts with player_link_) so you can copy the full profile URL with one click.',
-            featBoardCalculatorBridge: 'Board calculator bridge',
-            featBoardCalculatorBridgeDesc: 'Adds a Board Calculator button on the source page and generates a board locally from your saved values.',
+            featBoardGenerator: 'Board Generator',
+            featBoardGeneratorDesc: 'Generates a board locally from your saved values.',
             playerLinkCopyTitle: 'Copy full profile link',
             playerLinkCopiedTitle: 'Copied',
             questAdvisorLabel: 'Quest Advisor',
@@ -97,7 +105,7 @@
             questAdvisorTarget: 'Target',
             questAdvisorPlay: 'play',
             questAdvisorPlays: 'plays',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Board Generator',
             
         },
         de: {
@@ -126,8 +134,8 @@
             featQuestAdvisorDesc: 'Auf der Ausrüstungsseite erscheint ein Panel, in dem du ein Minecoin-Ziel und die Anzahl der Spielrunden eingibst – das optimale Spielfeld wird basierend auf deinem aktuellen Ausrüstungsbonus empfohlen.',
             featPlayerLinkCopy: 'Symbol zum Kopieren des Spieler-Links',
             featPlayerLinkCopyDesc: 'Fügt hinter Spieler-Links (ID beginnt mit player_link_) ein Kopiersymbol hinzu, um die vollständige Profil-URL mit einem Klick zu kopieren.',
-            featBoardCalculatorBridge: 'Board-Rechner-Verknüpfung',
-            featBoardCalculatorBridgeDesc: 'Fügt auf der Quellseite einen Board-Calculator-Link hinzu und öffnet den externen Board-Rechner mit vorausgefüllter Account-ID und gespeicherten Werten.',
+            featBoardGenerator: 'Board-Generator',
+            featBoardGeneratorDesc: 'Erzeugt lokal ein Spielfeld aus deinen gespeicherten Werten.',
             playerLinkCopyTitle: 'Vollständigen Profil-Link kopieren',
             playerLinkCopiedTitle: 'Kopiert',
             questAdvisorLabel: 'Quest-Berater',
@@ -135,7 +143,7 @@
             questAdvisorTarget: 'Ziel',
             questAdvisorPlay: 'Runde',
             questAdvisorPlays: 'Runden',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Board-Generator',
 
         },
         ru: {
@@ -164,8 +172,8 @@
             featQuestAdvisorDesc: 'На странице снаряжения появляется панель: укажи целевое количество Minecoin и число попыток — скрипт подберёт оптимальное поле с учётом твоего текущего бонуса снаряжения.',
             featPlayerLinkCopy: 'Значок копирования ссылки игрока',
             featPlayerLinkCopyDesc: 'Добавляет значок копирования после ссылок на игрока (id начинается с player_link_), чтобы в один клик копировать полный URL профиля.',
-            featBoardCalculatorBridge: 'Связка с калькулятором поля',
-            featBoardCalculatorBridgeDesc: 'Добавляет на исходной странице ссылку Board Calculator и открывает внешний калькулятор поля с уже подставленными ID аккаунта и сохранёнными значениями.',
+            featBoardGenerator: 'Генератор поля',
+            featBoardGeneratorDesc: 'Локально генерирует поле на основе сохранённых значений.',
             playerLinkCopyTitle: 'Скопировать полную ссылку профиля',
             playerLinkCopiedTitle: 'Скопировано',
             questAdvisorLabel: 'Советник',
@@ -173,7 +181,7 @@
             questAdvisorTarget: 'Цель',
             questAdvisorPlay: 'партия',
             questAdvisorPlays: 'партии',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Генератор поля',
 
         },
         es: {
@@ -202,8 +210,8 @@
             featQuestAdvisorDesc: 'En la página de Equipamiento aparece un panel: introduce un objetivo de Minecoin y el número de partidas, y obtendrás la recomendación del tablero óptimo según tu bono de equipo actual.',
             featPlayerLinkCopy: 'Icono para copiar enlace de jugador',
             featPlayerLinkCopyDesc: 'Añade un icono de copia después de los enlaces de jugador (id empieza por player_link_) para copiar la URL completa del perfil con un clic.',
-            featBoardCalculatorBridge: 'Puente con calculadora de tablero',
-            featBoardCalculatorBridgeDesc: 'Añade en la página de origen un enlace Board Calculator y abre la calculadora externa con tu ID de cuenta y valores guardados ya rellenados.',
+            featBoardGenerator: 'Generador de tableros',
+            featBoardGeneratorDesc: 'Genera un tablero localmente a partir de tus valores guardados.',
             playerLinkCopyTitle: 'Copiar enlace completo del perfil',
             playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Asesor',
@@ -211,7 +219,7 @@
             questAdvisorTarget: 'Objetivo',
             questAdvisorPlay: 'partida',
             questAdvisorPlays: 'partidas',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Generador de tableros',
 
         },
         pt: {
@@ -240,8 +248,8 @@
             featQuestAdvisorDesc: 'Na página de Equipamento surge um painel: insira uma meta de Minecoin e o número de jogadas para receber a recomendação do tabuleiro ideal com base no seu bónus de equipamento atual.',
             featPlayerLinkCopy: 'Ícone de copiar link do jogador',
             featPlayerLinkCopyDesc: 'Adiciona um ícone de cópia após links de jogador (id começa com player_link_) para copiar a URL completa do perfil com um clique.',
-            featBoardCalculatorBridge: 'Ligação com calculadora de tabuleiro',
-            featBoardCalculatorBridgeDesc: 'Adiciona na página de origem um link Board Calculator e abre a calculadora externa já preenchida com o ID da conta e valores guardados.',
+            featBoardGenerator: 'Gerador de tabuleiros',
+            featBoardGeneratorDesc: 'Gera um tabuleiro localmente a partir dos teus valores guardados.',
             playerLinkCopyTitle: 'Copiar link completo do perfil',
             playerLinkCopiedTitle: 'Copiado',
             questAdvisorLabel: 'Consultor',
@@ -249,7 +257,7 @@
             questAdvisorTarget: 'Meta',
             questAdvisorPlay: 'jogada',
             questAdvisorPlays: 'jogadas',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Gerador de tabuleiros',
 
         },
         it: {
@@ -278,8 +286,8 @@
             featQuestAdvisorDesc: 'Nella pagina Equipaggiamento compare un pannello: inserisci un obiettivo di Minecoin e il numero di partite per ricevere il consiglio sul campo ottimale in base al tuo bonus equipaggiamento attuale.',
             featPlayerLinkCopy: 'Icona copia link giocatore',
             featPlayerLinkCopyDesc: 'Aggiunge un\'icona di copia dopo i link del giocatore (id che inizia con player_link_) per copiare con un clic l\'URL completo del profilo.',
-            featBoardCalculatorBridge: 'Collegamento al calcolatore',
-            featBoardCalculatorBridgeDesc: 'Nella pagina di origine aggiunge un link Board Calculator e apre il calcolatore esterno con ID account e valori salvati già compilati.',
+            featBoardGenerator: 'Generatore di tabelloni',
+            featBoardGeneratorDesc: 'Genera localmente un tabellone a partire dai valori salvati.',
             playerLinkCopyTitle: 'Copia link completo del profilo',
             playerLinkCopiedTitle: 'Copiato',
             questAdvisorLabel: 'Consulente',
@@ -287,7 +295,7 @@
             questAdvisorTarget: 'Obiettivo',
             questAdvisorPlay: 'partita',
             questAdvisorPlays: 'partite',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Generatore di tabelloni',
 
         },
         fr: {
@@ -316,8 +324,8 @@
             featQuestAdvisorDesc: 'Sur la page Équipement, un panneau apparaît : saisissez un objectif de Minecoin et le nombre de parties pour obtenir la recommandation du plateau optimal selon votre bonus d\'équipement actuel.',
             featPlayerLinkCopy: 'Icône de copie du lien joueur',
             featPlayerLinkCopyDesc: 'Ajoute une icône de copie après les liens joueur (id commençant par player_link_) pour copier en un clic l\'URL complète du profil.',
-            featBoardCalculatorBridge: 'Passerelle calculateur de plateau',
-            featBoardCalculatorBridgeDesc: 'Ajoute sur la page source un lien Board Calculator et ouvre le calculateur externe avec votre identifiant de compte et des valeurs enregistrées préremplies.',
+            featBoardGenerator: 'Générateur de plateau',
+            featBoardGeneratorDesc: 'Génère localement un plateau à partir de vos valeurs enregistrées.',
             playerLinkCopyTitle: 'Copier le lien complet du profil',
             playerLinkCopiedTitle: 'Copié',
             questAdvisorLabel: 'Conseiller',
@@ -325,7 +333,7 @@
             questAdvisorTarget: 'Objectif',
             questAdvisorPlay: 'partie',
             questAdvisorPlays: 'parties',
-            boardCalculatorBtn: 'Board Calculator',
+            boardGeneratorBtn: 'Générateur de plateau',
 
         },
         cn: {
@@ -354,8 +362,8 @@
             featQuestAdvisorDesc: '在装备页面显示一个面板：输入 Minecoin 目标和游玩次数，根据当前装备加成推荐最优棋盘。',
             featPlayerLinkCopy: '玩家链接复制图标',
             featPlayerLinkCopyDesc: '在玩家名称链接（id 以 player_link_ 开头）后添加复制图标，一键复制完整个人主页链接。',
-            featBoardCalculatorBridge: '棋盘计算器联动',
-            featBoardCalculatorBridgeDesc: '在来源页面添加“棋盘计算器”链接，可自动带上账号 ID 和已保存数值并打开外部棋盘计算器。',
+            featBoardGenerator: '棋盘生成器',
+            featBoardGeneratorDesc: '根据已保存的数值，在本地生成棋盘结果。',
             playerLinkCopyTitle: '复制完整个人主页链接',
             playerLinkCopiedTitle: '已复制',
             questAdvisorLabel: '任务顾问',
@@ -363,7 +371,7 @@
             questAdvisorTarget: '目标',
             questAdvisorPlay: '局',
             questAdvisorPlays: '局',
-            boardCalculatorBtn: '棋盘计算器',
+            boardGeneratorBtn: '棋盘生成器',
 
         },
         tw: {
@@ -392,8 +400,8 @@
             featQuestAdvisorDesc: '在裝備頁面顯示一個面板：輸入 Minecoin 目標和遊玩次數，根據目前裝備加成推薦最佳棋盤。',
             featPlayerLinkCopy: '玩家連結複製圖示',
             featPlayerLinkCopyDesc: '在玩家名稱連結（id 以 player_link_ 開頭）後方新增複製圖示，一鍵複製完整個人頁面連結。',
-            featBoardCalculatorBridge: '棋盤計算器連動',
-            featBoardCalculatorBridgeDesc: '在來源頁面新增「棋盤計算器」連結，可自動帶入帳號 ID 與已儲存數值並開啟外部棋盤計算器。',
+            featBoardGenerator: '棋盤生成器',
+            featBoardGeneratorDesc: '根據已儲存的數值，在本機產生棋盤結果。',
             playerLinkCopyTitle: '複製完整個人頁面連結',
             playerLinkCopiedTitle: '已複製',
             questAdvisorLabel: '任務顧問',
@@ -401,7 +409,7 @@
             questAdvisorTarget: '目標',
             questAdvisorPlay: '局',
             questAdvisorPlays: '局',
-            boardCalculatorBtn: '棋盤計算器',
+            boardGeneratorBtn: '棋盤生成器',
 
         },
         ja: {
@@ -430,8 +438,8 @@
             featQuestAdvisorDesc: '装備ページにパネルを表示します：Minecoin の目標値とプレイ回数を入力すると、現在の装備ボーナスに基づいて最適なボードを推薦します。',
             featPlayerLinkCopy: 'プレイヤーリンクのコピーアイコン',
             featPlayerLinkCopyDesc: 'プレイヤー名リンク（id が player_link_ で始まる）の後ろにコピーアイコンを追加し、プロフィールの完全なURLをワンクリックでコピーできます。',
-            featBoardCalculatorBridge: 'ボード計算ツール連携',
-            featBoardCalculatorBridgeDesc: '元ページにボード計算ツールのリンクを追加し、アカウント ID と保存済みの値を入力済みの状態で外部ボード計算ツールを開きます。',
+            featBoardGenerator: 'ボード生成ツール',
+            featBoardGeneratorDesc: '保存済みの値からローカルでボードを生成します。',
             playerLinkCopyTitle: 'プロフィールの完全なリンクをコピー',
             playerLinkCopiedTitle: 'コピーしました',
             questAdvisorLabel: 'クエストアドバイザー',
@@ -439,7 +447,7 @@
             questAdvisorTarget: '目標',
             questAdvisorPlay: '回',
             questAdvisorPlays: '回',
-            boardCalculatorBtn: 'ボード計算ツール',
+            boardGeneratorBtn: 'ボード生成ツール',
 
         },
         ko: {
@@ -468,8 +476,8 @@
             featQuestAdvisorDesc: '장비 페이지에 패널이 표시됩니다: Minecoin 목표와 플레이 횟수를 입력하면 현재 장비 보너스를 기반으로 최적의 보드를 추천합니다.',
             featPlayerLinkCopy: '플레이어 링크 복사 아이콘',
             featPlayerLinkCopyDesc: '플레이어 이름 링크(id가 player_link_로 시작) 뒤에 복사 아이콘을 추가해 프로필 전체 URL을 한 번에 복사합니다.',
-            featBoardCalculatorBridge: '보드 계산기 연동',
-            featBoardCalculatorBridgeDesc: '원본 페이지에 보드 계산기 링크를 추가하고 계정 ID와 저장된 값을 자동으로 채운 외부 보드 계산기를 엽니다.',
+            featBoardGenerator: '보드 생성기',
+            featBoardGeneratorDesc: '저장된 값을 바탕으로 로컬에서 보드를 생성합니다.',
             playerLinkCopyTitle: '프로필 전체 링크 복사',
             playerLinkCopiedTitle: '복사됨',
             questAdvisorLabel: '퀘스트 어드바이저',
@@ -477,7 +485,7 @@
             questAdvisorTarget: '목표',
             questAdvisorPlay: '판',
             questAdvisorPlays: '판',
-            boardCalculatorBtn: '보드 계산기',
+            boardGeneratorBtn: '보드 생성기',
 
         },
     };
@@ -1557,7 +1565,7 @@
         trySetup();
     }
 
-    // ── Board calculator (local generator) ───────────────────────────────
+    // ── Board generator ──────────────────────────────────────────────────
 
     function buildNeighbourTable(width, height) {
         const total = width * height;
@@ -1857,9 +1865,9 @@
         };
     }
 
-    function initBoardCalculatorBridge() {
-        const BTN_ID = 'ms-board-calculator-link';
-        const RESULT_ID = 'ms-board-calculator-result';
+    function initBoardGenerator() {
+        const BTN_ID = 'ms-board-generator-link';
+        const RESULT_ID = 'ms-board-generator-result';
         const SOURCE_SEGMENT = ['n', 'ft'].join('');
         const SOURCE_EDIT_SEGMENT = 'edit';
         const SOURCE_SIZE_ID_PREFIX = ['n', 'ft_size_'].join('');
@@ -1925,7 +1933,7 @@
             if (!isSourcePagePath(location.pathname)) return;
 
             const existing = document.getElementById(BTN_ID);
-            if (!featEnabled(FEAT_BOARD_CALCULATOR_BRIDGE_KEY)) {
+            if (!featEnabled(FEAT_BOARD_GENERATOR_KEY)) {
                 existing?.remove();
                 return;
             }
@@ -1959,7 +1967,7 @@
             const link = document.createElement('a');
             link.id = BTN_ID;
             link.href = 'javascript:void(0)';
-            link.textContent = t('boardCalculatorBtn');
+            link.textContent = t('boardGeneratorBtn');
             link.className = resetControl?.className || 'btn btn-default';
             link.style.cssText = 'margin-left:6px;';
             for (let i = 1; i <= 8; i++) link.dataset[`count${i}`] = String(payload[i]);
@@ -2070,9 +2078,9 @@
                 desc: t('featPlayerLinkCopyDesc'),
             },
             {
-                key: FEAT_BOARD_CALCULATOR_BRIDGE_KEY,
-                label: t('featBoardCalculatorBridge'),
-                desc: t('featBoardCalculatorBridgeDesc'),
+                key: FEAT_BOARD_GENERATOR_KEY,
+                label: t('featBoardGenerator'),
+                desc: t('featBoardGeneratorDesc'),
             },
         ];
 
@@ -2197,7 +2205,7 @@
         initSellMaxBtn();
         initQuestAdvisor();
         initPlayerLinkCopy();
-        initBoardCalculatorBridge();
+        initBoardGenerator();
 
         // Single shared body observer.
         // URL-change detection here replaces unsafe pushState/replaceState monkey-patching.
