@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旼模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务和市场页面提供一键领取功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐、为玩家个人主页链接添加复制图标、支持内置棋盘计算生成器，并支持在设置页面单独开关每项功能。
+适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旼模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务和市场页面提供一键领取功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐、为玩家个人主页链接添加复制图标，并支持在设置页面单独开关每项功能。
 
 ## 设置
 
@@ -15,7 +15,6 @@
 - 最大出售与市场价格
 - 任务顾问
 - 玩家链接复制图标
-- 棋盘生成器
 
 ## 功能
 
@@ -29,7 +28,6 @@
 - **最大出售与市场价格** — 在[市场页面](https://minesweeper.online/marketplace)的出售弹窗中，每行将新增两个辅助：数量输入框旁的 **▲** 链接可一键填入您拥有的最大数量，价格输入框旁的 **🏷** 链接可通过站点 WebSocket 自动获取当前市场价格。表头链接可对所有行批量操作。
 - **任务顾问** — 在[装备页面](https://minesweeper.online/equipment)的装备标题下方，出现一行任务顾问控件。选择目标类型（如 MC），输入目标数量，并选择计划游玩次数，推荐棋盘会作为可点击链接实时显示。脚本会自动从装备统计数据中读取当前 Minecoin 加成。
 - **玩家链接复制图标** — 在全站范围内，只要玩家名称链接符合个人主页格式（`<a>` 的 id 以 `player_link_` 开头，且链接形如 `/player/123456` 或 `/cn/player/123456`），链接后方就会自动出现复制图标。点击即可复制完整的绝对链接地址。
-- **棋盘生成器** — 根据已保存的数值在本地生成可用棋盘，并直接在页面中显示结果。
 
 ## 安装
 
