@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.2.0
+// @version      2.2.1
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, adds a Board Calculator shortcut on the source page, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -9,7 +9,6 @@
 // @supportURL   https://github.com/fzlins/WoM-Helper/issues
 // @icon         https://minesweeper.online/favicon.ico
 // @match        https://minesweeper.online/*
-// @match        https://notavailablenam.github.io/minesweeper/*
 // @grant        none
 // ==/UserScript==
 
@@ -34,8 +33,6 @@
     const FEAT_QUEST_ADVISOR_KEY = 'ms-feat-eq-advisor';
     const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
     const FEAT_BOARD_CALCULATOR_BRIDGE_KEY = 'ms-feat-board-calculator-bridge';
-
-    const BOARD_CALCULATOR_URL = 'https://notavailablenam.github.io/minesweeper/';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -92,7 +89,7 @@
             featPlayerLinkCopy: 'Player link copy icon',
             featPlayerLinkCopyDesc: 'Adds a copy icon after player-name links (id starts with player_link_) so you can copy the full profile URL with one click.',
             featBoardCalculatorBridge: 'Board calculator bridge',
-            featBoardCalculatorBridgeDesc: 'Adds a Board Calculator link on the source page and opens the external board calculator with your account ID and saved values prefilled.',
+            featBoardCalculatorBridgeDesc: 'Adds a Board Calculator button on the source page and generates a board locally from your saved values.',
             playerLinkCopyTitle: 'Copy full profile link',
             playerLinkCopiedTitle: 'Copied',
             questAdvisorLabel: 'Quest Advisor',
@@ -725,12 +722,6 @@
         initNF._done = true;
         let nfEnabled = localStorage.getItem(NF_KEY) === '1';
 
-        const updateNFBinding = () => {
-            // Only enable NF when the toggle exists on the current page.
-            const hasToggle = !!document.querySelector('.ms-nf-chk');
-            applyNF(hasToggle && nfEnabled);
-        };
-
         const syncAll = () => {
             document.querySelectorAll('.ms-nf-chk').forEach(c => { c.checked = nfEnabled; });
         };
@@ -739,7 +730,7 @@
             nfEnabled = this.checked;
             syncAll();
             localStorage.setItem(NF_KEY, nfEnabled ? '1' : '0');
-            updateNFBinding();
+            applyNF(nfEnabled);
         }
 
         function tryInsert() {
@@ -773,15 +764,14 @@
             }
 
             syncAll();
-            updateNFBinding();
             return true;
         }
 
         // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
         onDomChange(tryInsert);
-        onDomChange(updateNFBinding);
+        onDomChange(() => applyNF(nfEnabled));
         tryInsert();
-        updateNFBinding();
+        applyNF(nfEnabled);
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
@@ -1567,10 +1557,309 @@
         trySetup();
     }
 
-    // ── Board calculator bridge ──────────────────────────────────────────
+    // ── Board calculator (local generator) ───────────────────────────────
+
+    function buildNeighbourTable(width, height) {
+        const total = width * height;
+        const table = new Int32Array(total * 8).fill(-1);
+        for (let row = 0; row < height; row++) {
+            for (let col = 0; col < width; col++) {
+                const index = row * width + col;
+                let write = index * 8;
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const nr = row + dr;
+                        const nc = col + dc;
+                        if (nr >= 0 && nr < height && nc >= 0 && nc < width) {
+                            table[write++] = nr * width + nc;
+                        }
+                    }
+                }
+            }
+        }
+        return table;
+    }
+
+    function candidateSizes(totalCount) {
+        const minArea = Math.max(9, Math.ceil(totalCount * 1.35));
+        const maxArea = Math.max(minArea + 60, totalCount * 4);
+        const seen = new Set();
+        const sizes = [];
+
+        for (let area = minArea; area <= maxArea; area++) {
+            for (let width = 2; width * width <= area + 1; width++) {
+                if (area % width !== 0) continue;
+                const height = area / width;
+                if (height < 2) continue;
+                if (height / width > 3) continue;
+                const key = `${width}x${height}`;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                sizes.push({ width, height, area, diff: height - width });
+            }
+        }
+
+        sizes.sort((a, b) => a.area - b.area || a.diff - b.diff);
+        return sizes;
+    }
+
+    function randomMineLayout(total, target, perm) {
+        const totalCounts = target.reduce((sum, count) => sum + count, 0);
+        const estimated = Math.round((total - totalCounts) * 0.42 + totalCounts * 0.05);
+        const mineCount = Math.max(1, Math.min(total - 1, estimated));
+
+        for (let i = 0; i < total; i++) perm[i] = i;
+        for (let i = total - 1; i > 0; i--) {
+            const j = (Math.random() * (i + 1)) | 0;
+            const tmp = perm[i];
+            perm[i] = perm[j];
+            perm[j] = tmp;
+        }
+
+        const mines = new Uint8Array(total);
+        for (let i = 0; i < mineCount; i++) mines[perm[i]] = 1;
+        return mines;
+    }
+
+    function applyToggle(index, adding, mines, digits, counts, target, neighbours) {
+        let deltaMismatch = 0;
+
+        if (adding) {
+            const old = digits[index];
+            if (old > 0) {
+                deltaMismatch += Math.abs(counts[old] - 1 - target[old]) - Math.abs(counts[old] - target[old]);
+                counts[old]--;
+            }
+            digits[index] = -1;
+            mines[index] = 1;
+        } else {
+            const base = index * 8;
+            let newValue = 0;
+            for (let k = 0; k < 8; k++) {
+                const nb = neighbours[base + k];
+                if (nb < 0) break;
+                if (mines[nb]) newValue++;
+            }
+            if (newValue > 0) {
+                deltaMismatch += Math.abs(counts[newValue] + 1 - target[newValue]) - Math.abs(counts[newValue] - target[newValue]);
+                counts[newValue]++;
+            }
+            digits[index] = newValue;
+            mines[index] = 0;
+        }
+
+        const base = index * 8;
+        const delta = adding ? 1 : -1;
+        for (let k = 0; k < 8; k++) {
+            const nb = neighbours[base + k];
+            if (nb < 0) break;
+            if (mines[nb]) continue;
+            const old = digits[nb];
+            const next = old + delta;
+            if (old > 0) {
+                deltaMismatch += Math.abs(counts[old] - 1 - target[old]) - Math.abs(counts[old] - target[old]);
+                counts[old]--;
+            }
+            if (next > 0) {
+                deltaMismatch += Math.abs(counts[next] + 1 - target[next]) - Math.abs(counts[next] - target[next]);
+                counts[next]++;
+            }
+            digits[nb] = next;
+        }
+
+        return deltaMismatch;
+    }
+
+    function simulatedAnnealing(width, height, target, neighbours, perm) {
+        const total = width * height;
+        const mines = randomMineLayout(total, target, perm);
+        const digits = new Int8Array(total);
+        const counts = new Int32Array(9);
+
+        for (let i = 0; i < total; i++) {
+            if (mines[i]) {
+                digits[i] = -1;
+                continue;
+            }
+            let value = 0;
+            const base = i * 8;
+            for (let k = 0; k < 8; k++) {
+                const nb = neighbours[base + k];
+                if (nb < 0) break;
+                if (mines[nb]) value++;
+            }
+            digits[i] = value;
+            if (value > 0) counts[value]++;
+        }
+
+        let mismatch = 0;
+        for (let d = 1; d <= 8; d++) mismatch += Math.abs(counts[d] - target[d]);
+
+        let bestMines = mines.slice();
+        let bestDigits = digits.slice();
+        let bestMismatch = mismatch;
+
+        const mineArr = new Int32Array(total);
+        const freeArr = new Int32Array(total);
+        const minePos = new Int32Array(total).fill(-1);
+        const freePos = new Int32Array(total).fill(-1);
+        let mineLen = 0;
+        let freeLen = 0;
+
+        for (let i = 0; i < total; i++) {
+            if (mines[i]) {
+                minePos[i] = mineLen;
+                mineArr[mineLen++] = i;
+            } else {
+                freePos[i] = freeLen;
+                freeArr[freeLen++] = i;
+            }
+        }
+
+        function addMine(index) {
+            const pos = freePos[index];
+            const last = freeArr[--freeLen];
+            freeArr[pos] = last;
+            freePos[last] = pos;
+            freePos[index] = -1;
+            minePos[index] = mineLen;
+            mineArr[mineLen++] = index;
+        }
+
+        function removeMine(index) {
+            const pos = minePos[index];
+            const last = mineArr[--mineLen];
+            mineArr[pos] = last;
+            minePos[last] = pos;
+            minePos[index] = -1;
+            freePos[index] = freeLen;
+            freeArr[freeLen++] = index;
+        }
+
+        const iterations = Math.max(2000, total * 600);
+        const startTemp = 6.0;
+        const endTemp = 0.04;
+        const alpha = Math.pow(endTemp / startTemp, 1 / iterations);
+        let temp = startTemp;
+
+        for (let i = 0; i < iterations; i++) {
+            if (mismatch === 0) break;
+            temp *= alpha;
+            const random = Math.random();
+
+            if (random < 0.6 && mineLen > 0 && freeLen > 0) {
+                const from = mineArr[(Math.random() * mineLen) | 0];
+                const to = freeArr[(Math.random() * freeLen) | 0];
+
+                const d1 = applyToggle(from, false, mines, digits, counts, target, neighbours);
+                const d2 = applyToggle(to, true, mines, digits, counts, target, neighbours);
+                const nextMismatch = mismatch + d1 + d2;
+
+                if (nextMismatch <= mismatch || Math.random() < Math.exp(-(nextMismatch - mismatch) / temp)) {
+                    mismatch = nextMismatch;
+                    removeMine(from);
+                    addMine(to);
+                } else {
+                    applyToggle(to, false, mines, digits, counts, target, neighbours);
+                    applyToggle(from, true, mines, digits, counts, target, neighbours);
+                }
+            } else if (random < 0.8 && freeLen > 0 && mineLen < total - 1) {
+                const to = freeArr[(Math.random() * freeLen) | 0];
+                const delta = applyToggle(to, true, mines, digits, counts, target, neighbours);
+                const nextMismatch = mismatch + delta;
+
+                if (nextMismatch <= mismatch || Math.random() < Math.exp(-(nextMismatch - mismatch) / temp)) {
+                    mismatch = nextMismatch;
+                    addMine(to);
+                } else {
+                    applyToggle(to, false, mines, digits, counts, target, neighbours);
+                }
+            } else if (mineLen > 1) {
+                const from = mineArr[(Math.random() * mineLen) | 0];
+                const delta = applyToggle(from, false, mines, digits, counts, target, neighbours);
+                const nextMismatch = mismatch + delta;
+
+                if (nextMismatch <= mismatch || Math.random() < Math.exp(-(nextMismatch - mismatch) / temp)) {
+                    mismatch = nextMismatch;
+                    removeMine(from);
+                } else {
+                    applyToggle(from, true, mines, digits, counts, target, neighbours);
+                }
+            }
+
+            if (mismatch < bestMismatch) {
+                bestMismatch = mismatch;
+                bestMines = mines.slice();
+                bestDigits = digits.slice();
+                if (bestMismatch === 0) break;
+            }
+        }
+
+        return { mismatch: bestMismatch, mines: bestMines, digits: bestDigits };
+    }
+
+    function formatBoard(digits, width, height) {
+        const rows = [];
+        for (let row = 0; row < height; row++) {
+            let line = '';
+            for (let col = 0; col < width; col++) {
+                const value = digits[row * width + col];
+                line += value === -1 ? '*' : value === 0 ? '.' : String(value);
+            }
+            rows.push(line);
+        }
+        return rows.join('\n');
+    }
+
+    function generateBoardFromCounts(counts, options = {}) {
+        const { restartsPerSize = 6, maxSizes = 50 } = options;
+        const target = new Int32Array(9);
+        for (let d = 1; d <= 8; d++) target[d] = Math.max(0, counts[d] | 0);
+        const totalCount = target.reduce((sum, count) => sum + count, 0);
+        if (totalCount === 0) throw new Error('All counts are zero.');
+
+        const sizes = candidateSizes(totalCount).slice(0, maxSizes);
+        let best = null;
+        let bestMismatch = Infinity;
+
+        for (const { width, height } of sizes) {
+            const total = width * height;
+            const neighbours = buildNeighbourTable(width, height);
+            const perm = new Int32Array(total);
+
+            for (let retry = 0; retry < restartsPerSize; retry++) {
+                const result = simulatedAnnealing(width, height, target, neighbours, perm);
+                if (result.mismatch < bestMismatch) {
+                    bestMismatch = result.mismatch;
+                    best = { width, height, ...result };
+                }
+                if (bestMismatch === 0) break;
+            }
+
+            if (bestMismatch === 0) break;
+        }
+
+        if (!best) throw new Error('Search exhausted without result.');
+
+        let mineCount = 0;
+        for (let i = 0; i < best.mines.length; i++) {
+            if (best.mines[i]) mineCount++;
+        }
+
+        return {
+            success: best.mismatch === 0,
+            mismatch: best.mismatch,
+            width: best.width,
+            height: best.height,
+            mines: mineCount,
+            formatted: formatBoard(best.digits, best.width, best.height),
+        };
+    }
 
     function initBoardCalculatorBridge() {
         const BTN_ID = 'ms-board-calculator-link';
+        const RESULT_ID = 'ms-board-calculator-result';
         const SOURCE_SEGMENT = ['n', 'ft'].join('');
         const SOURCE_EDIT_SEGMENT = 'edit';
         const SOURCE_SIZE_ID_PREFIX = ['n', 'ft_size_'].join('');
@@ -1579,54 +1868,37 @@
 
         function isSourcePagePath(pathname) {
             const parts = pathname.split('/').filter(Boolean);
-            if (parts.length >= 3 && /^[a-z]{2}$/.test(parts[0])) {
-                parts.shift();
-            }
+            if (parts.length >= 3 && /^[a-z]{2}$/.test(parts[0])) parts.shift();
             return parts.length >= 2 && parts[0] === SOURCE_SEGMENT && parts[1] === SOURCE_EDIT_SEGMENT;
-        }
-
-        function isPositiveIntegerString(value) {
-            return /^[1-9]\d*$/.test(value || '');
         }
 
         function isNonNegativeIntegerString(value) {
             return /^\d+$/.test(value || '');
         }
 
-        function extractAccountId() {
-            const candidates = document.querySelectorAll('a[href*="/player/"]');
-            for (const link of candidates) {
-                const href = link.getAttribute('href') || '';
-                const match = href.match(/\/player\/(\d+)\/?$/);
-                if (match) return match[1];
-            }
-            return null;
-        }
-
-        function extractCapacityValue(index) {
+        function extractValue(index) {
             const cell = document.getElementById(`${SOURCE_SIZE_ID_PREFIX}${index}`);
             if (!cell) return null;
-
             const text = cell.textContent.replace(/\s+/g, ' ').trim();
             const slashMatch = text.match(/\/\s*(\d+)$/);
             if (slashMatch) return slashMatch[1];
-
             const currentMatch = text.match(/^(\d+)$/);
             return currentMatch?.[1] || null;
         }
 
-        function buildUrl() {
-            const accountId = extractAccountId();
-            if (!isPositiveIntegerString(accountId)) return null;
-
-            const capacities = [];
+        function extractCounts() {
+            const counts = {};
             for (let index = 1; index <= 8; index++) {
-                const value = extractCapacityValue(index);
+                const value = extractValue(index);
                 if (!isNonNegativeIntegerString(value)) return null;
-                capacities.push(value);
+                counts[index] = Number(value);
             }
+            return counts;
+        }
 
-            return `${BOARD_CALCULATOR_URL}?data=${[accountId, ...capacities].join(',')}`;
+        function showResult(resultEl, result) {
+            const status = result.success ? 'success' : `mismatch=${result.mismatch}`;
+            resultEl.textContent = `size=${result.width}x${result.height}  mines=${result.mines}  ${status}\n${result.formatted}`;
         }
 
         function findResetControl() {
@@ -1643,7 +1915,6 @@
 
             const sourceBlock = document.getElementById(SOURCE_BLOCK_ID);
             if (!sourceBlock) return null;
-
             return Array.from(sourceBlock.querySelectorAll('button, input[type="button"], input[type="reset"]')).find(control => {
                 const text = (control.textContent || control.value || control.title || '').replace(/\s+/g, ' ').trim();
                 return /^reset$/i.test(text) || !!control.querySelector?.('.fa-eraser');
@@ -1662,22 +1933,25 @@
             const table = document.getElementById(`${SOURCE_SIZE_ID_PREFIX}1`)?.closest('table');
             if (!table) return;
 
-            const url = buildUrl();
-            if (!url) {
+            const payload = extractCounts();
+            if (!payload) {
                 existing?.remove();
+                document.getElementById(RESULT_ID)?.remove();
                 return;
             }
 
             const resetControl = findResetControl();
 
             if (existing) {
-                existing.dataset.url = url;
+                for (let i = 1; i <= 8; i++) existing.dataset[`count${i}`] = String(payload[i]);
                 if (resetControl && existing.previousElementSibling !== resetControl) {
                     const oldParent = existing.parentElement;
                     resetControl.insertAdjacentElement('afterend', existing);
-                    if (oldParent && !oldParent.id && !oldParent.childElementCount && !oldParent.textContent.trim()) {
-                        oldParent.remove();
-                    }
+                    if (oldParent && !oldParent.id && !oldParent.childElementCount && !oldParent.textContent.trim()) oldParent.remove();
+                }
+                const existingResult = document.getElementById(RESULT_ID);
+                if (existingResult && existingResult.previousElementSibling !== existing) {
+                    existing.insertAdjacentElement('afterend', existingResult);
                 }
                 return;
             }
@@ -1688,77 +1962,49 @@
             link.textContent = t('boardCalculatorBtn');
             link.className = resetControl?.className || 'btn btn-default';
             link.style.cssText = 'margin-left:6px;';
-            link.dataset.url = url;
+            for (let i = 1; i <= 8; i++) link.dataset[`count${i}`] = String(payload[i]);
+
+            const resultLabel = document.createElement('label');
+            resultLabel.id = RESULT_ID;
+            resultLabel.style.cssText = 'display:block;margin:6px 0 0 6px;white-space:pre-wrap;';
+
             link.addEventListener('click', () => {
-                const targetUrl = link.dataset.url;
-                if (targetUrl) window.open(targetUrl, '_blank');
+                const counts = {};
+                for (let i = 1; i <= 8; i++) counts[i] = Number(link.dataset[`count${i}`] || '0');
+
+                const oldText = link.textContent;
+                link.textContent = 'Generating...';
+                link.style.pointerEvents = 'none';
+                resultLabel.textContent = 'Generating...';
+
+                setTimeout(() => {
+                    try {
+                        const result = generateBoardFromCounts(counts, { restartsPerSize: 6, maxSizes: 50 });
+                        showResult(resultLabel, result);
+                    } catch (error) {
+                        resultLabel.textContent = `Board generation failed: ${error.message || error}`;
+                    } finally {
+                        link.textContent = oldText;
+                        link.style.pointerEvents = '';
+                    }
+                }, 0);
             });
 
             if (resetControl) {
                 resetControl.insertAdjacentElement('afterend', link);
+                link.insertAdjacentElement('afterend', resultLabel);
                 return;
             }
 
             const fallbackWrap = document.createElement('div');
             fallbackWrap.style.cssText = 'margin:8px 0;text-align:right;';
             fallbackWrap.appendChild(link);
+            fallbackWrap.appendChild(resultLabel);
             table.insertAdjacentElement('beforebegin', fallbackWrap);
         }
 
         onDomChange(tryInsert);
         tryInsert();
-    }
-
-    function initBoardCalculatorAutofill() {
-        const PAGE_RE = /^\/minesweeper\/?$/;
-        const HOST = 'notavailablenam.github.io';
-        const SLOT_INPUT_ID_PREFIX = ['to', 'ken_'].join('');
-        let filled = false;
-
-        function isPositiveIntegerString(value) {
-            return /^[1-9]\d*$/.test(value || '');
-        }
-
-        function isNonNegativeIntegerString(value) {
-            return /^\d+$/.test(value || '');
-        }
-
-        function parseData() {
-            const raw = new URLSearchParams(location.search).get('data');
-            if (!raw) return null;
-
-            const values = raw.split(',').map(value => value.trim());
-            if (values.length !== 9) return null;
-            if (!isPositiveIntegerString(values[0])) return null;
-            if (!values.slice(1).every(isNonNegativeIntegerString)) return null;
-            return values;
-        }
-
-        function setInputValue(input, value) {
-            if (!input) return;
-            input.value = value;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-
-        function tryFill() {
-            if (filled) return;
-            if (location.hostname !== HOST || !PAGE_RE.test(location.pathname)) return;
-
-            const values = parseData();
-            if (!values) return;
-
-            const accountInput = document.getElementById('accountLink');
-            const slotInputs = Array.from({ length: 8 }, (_, index) => document.getElementById(`${SLOT_INPUT_ID_PREFIX}${index + 1}`));
-            if (!accountInput || slotInputs.some(input => !input)) return;
-
-            setInputValue(accountInput, values[0]);
-            slotInputs.forEach((input, index) => setInputValue(input, values[index + 1]));
-            filled = true;
-        }
-
-        onDomChange(tryFill);
-        tryFill();
     }
 
     // ── Settings panel ─────────────────────────────────────────────────────
@@ -1952,7 +2198,6 @@
         initQuestAdvisor();
         initPlayerLinkCopy();
         initBoardCalculatorBridge();
-        initBoardCalculatorAutofill();
 
         // Single shared body observer.
         // URL-change detection here replaces unsafe pushState/replaceState monkey-patching.

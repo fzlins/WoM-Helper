@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, adds a copy icon for player profile links, adds a Board Calculator shortcut on the source page, and lets you toggle each feature from the Settings page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, adds a copy icon for player profile links, adds a local Board Calculator generator on the source page, and lets you toggle each feature from the Settings page.
 
 ## Settings
 
@@ -29,7 +29,7 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - **Sell max & market price** — On the [Marketplace](https://minesweeper.online/marketplace) page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
 - **Quest Advisor** — On the [Equipment](https://minesweeper.online/equipment) page, a **Quest Advisor** row appears below the equipment heading. Choose a goal type (e.g. MC), enter a target amount, and select how many times you plan to play; the advisor automatically reads your current Minecoin bonus from the equipment stats and shows the recommended board as a clickable link.
 - **Player link copy icon** — Anywhere on the site, if a player-name link matches the profile-link pattern (an `<a>` with an id starting with `player_link_` and a profile URL like `/player/123456` or `/cn/player/123456`), a copy icon appears right after the name. Click it to copy the full absolute profile URL.
-- **Board calculator bridge** — On the source page, a **Board Calculator** link appears near the action controls when the required values are available. Clicking it opens [notavailablenam's board calculator](https://notavailablenam.github.io/minesweeper/) in a new tab with your account ID and saved values prefilled automatically.
+- **Board calculator bridge** — On the source page, a **Board Calculator** button appears near the action controls when the required values are available. Clicking it runs the built-in generator and displays a valid board result directly on the page.
 
 ## Installation
 
@@ -52,7 +52,6 @@ Install directly from [Greasy Fork](https://greasyfork.org/scripts/578042-minesw
 | Contributor | Contribution |
 |---|---|
 | [Curiosity](https://minesweeper.online/player/8440847) | [Board difficulty data](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) used by the Quest Advisor |
-| [notavailablenam](https://minesweeper.online/player/24558280) | External board calculator used by the board calculator bridge |
 
 ## License
 
