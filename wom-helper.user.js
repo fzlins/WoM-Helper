@@ -1,8 +1,8 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.2.2
-// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, adds a local Board Generator, and adds a helper settings panel on minesweeper.online
+// @version      2.3.0
+// @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
 // @homepageURL  https://github.com/fzlins/WoM-Helper
@@ -34,6 +34,7 @@
     const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
     const FEAT_BOARD_GENERATOR_KEY = 'ms-feat-board-generator';
     const FEAT_BOARD_GENERATOR_LEGACY_KEY = 'ms-feat-board-calculator';
+    const FEAT_BOARD_GENERATOR_DISCOVERED_KEY = 'ms-feat-board-generator-discovered';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -48,6 +49,10 @@
         if (legacyBoardGeneratorSetting !== null) {
             localStorage.setItem(FEAT_BOARD_GENERATOR_KEY, legacyBoardGeneratorSetting);
         }
+    }
+    // Existing explicit preference means the user has already discovered this feature.
+    if (localStorage.getItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY) === null && localStorage.getItem(FEAT_BOARD_GENERATOR_KEY) !== null) {
+        localStorage.setItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY, '1');
     }
 
     /**
@@ -1971,6 +1976,7 @@
             link.className = resetControl?.className || 'btn btn-default';
             link.style.cssText = 'margin-left:6px;';
             for (let i = 1; i <= 8; i++) link.dataset[`count${i}`] = String(payload[i]);
+            localStorage.setItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY, '1');
 
             const resultLabel = document.createElement('label');
             resultLabel.id = RESULT_ID;
@@ -2081,6 +2087,7 @@
                 key: FEAT_BOARD_GENERATOR_KEY,
                 label: t('featBoardGenerator'),
                 desc: t('featBoardGeneratorDesc'),
+                isVisible: () => localStorage.getItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY) === '1',
             },
         ];
 
@@ -2105,7 +2112,9 @@
             titleRow.append(titleLabelCol, titleValCol);
             section.appendChild(titleRow);
 
-            FEATURES.forEach(({ key, label, desc, type, options, defaultValue }) => {
+            FEATURES.forEach(({ key, label, desc, type, options, defaultValue, isVisible }) => {
+                if (isVisible && !isVisible()) return;
+
                 const group = document.createElement('div');
                 group.className = 'form-group';
 
