@@ -932,10 +932,22 @@
         initAutoDuel._done = true;
         let autoEnabled = localStorage.getItem(AUTO_DUEL_KEY) === '1';
         let clickTimer = null;
-        let cancelListenerAdded = false;
+
+        function disableAuto() {
+            clearTimeout(clickTimer);
+            autoEnabled = false;
+            localStorage.setItem(AUTO_DUEL_KEY, '0');
+            const c = document.getElementById('ms-auto-duel-chk');
+            if (c) c.checked = false;
+        }
 
         function tryClickBtn() {
             if (!autoEnabled) return;
+            const reconnectBtn = document.getElementById('reconnect_duel_btn');
+            if (reconnectBtn && !reconnectBtn.disabled && !reconnectBtn.classList.contains('disabled')) {
+                reconnectBtn.click();
+                return;
+            }
             const btn = document.getElementById('start_duel_btn');
             if (!btn || btn.disabled || btn.classList.contains('disabled')) return;
             btn.click();
@@ -946,10 +958,31 @@
             clickTimer = setTimeout(tryClickBtn, delay ?? AUTO_DUEL_CLICK_DELAY);
         }
 
+        // Register cancel/quit listeners immediately — independent of page state.
+        // cancel_duel_btn: cancels matchmaking search (lobby state).
+        // quit_duel_btn:   quits an ongoing game (in-game state).
+        document.addEventListener('click', function (e) {
+            const id = e.target?.id ?? e.target?.closest?.('[id^="cancel_duel_btn"],[id^="quit_duel_btn"]')?.id;
+            if (id === 'cancel_duel_btn' || id === 'quit_duel_btn') disableAuto();
+        }, true);
+
+        // Handles both page states on every DOM change:
+        //   Lobby state    — #start_duel_btn present: inject Auto checkbox.
+        //   In-game state  — #reconnect_duel_btn present: auto-click when available.
         function tryInsert() {
+            // In-game state: watch #reconnect_duel_btn.
+            const reconnectBtn = document.getElementById('reconnect_duel_btn');
+            if (reconnectBtn && !reconnectBtn.dataset.msDuelObs) {
+                reconnectBtn.dataset.msDuelObs = '1';
+                scheduleClick(0);
+                new MutationObserver(() => scheduleClick()).observe(reconnectBtn, {
+                    attributes: true, attributeFilter: ['disabled', 'class']
+                });
+            }
+
+            // Lobby state: inject Auto checkbox next to #start_duel_btn.
             const btn = document.getElementById('start_duel_btn');
-            if (!btn) return;
-            if (document.getElementById('ms-auto-duel-chk')) return;
+            if (!btn || document.getElementById('ms-auto-duel-chk')) return;
 
             const label = document.createElement('label');
             label.htmlFor = 'ms-auto-duel-chk';
@@ -978,31 +1011,16 @@
 
             btn.insertAdjacentElement('afterend', label);
 
-            // Re-click automatically whenever the button transitions back to enabled
-            // (e.g. after a match completes or search times out).
+            // Re-click automatically whenever #start_duel_btn transitions back to enabled.
             new MutationObserver(() => scheduleClick()).observe(btn, {
                 attributes: true, attributeFilter: ['disabled', 'class']
             });
 
-            // Register the cancel listener only once for the lifetime of the page.
-            if (!cancelListenerAdded) {
-                cancelListenerAdded = true;
-                document.addEventListener('click', function (e) {
-                    if (e.target?.id === 'cancel_duel_btn' || e.target?.closest?.('#cancel_duel_btn')) {
-                        clearTimeout(clickTimer);
-                        autoEnabled = false;
-                        localStorage.setItem(AUTO_DUEL_KEY, '0');
-                        const c = document.getElementById('ms-auto-duel-chk');
-                        if (c) c.checked = false;
-                    }
-                }, true);
-            }
-
-            // Initial auto-click if the feature was already enabled
+            // Initial auto-click if the feature was already enabled.
             scheduleClick(AUTO_DUEL_INITIAL_DELAY);
         }
 
-        // Persistent — re-inserts the checkbox whenever #start_duel_btn re-appears.
+        // Persistent — handles both lobby and in-game states across SPA navigation.
         onDomChange(tryInsert);
         tryInsert();
     }
