@@ -53,8 +53,8 @@
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/8440847"><img src="https://minesweeper.online/favicon.ico" width="100px;" alt="Curiosity"/><br /><sub><b>Curiosity</b></sub></a><br /><a href="#ideas-Curiosity" title="Ideas, Planning, & Feedback">🤔</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/24558280"><img src="https://minesweeper.online/favicon.ico" width="100px;" alt="notavailablenam"/><br /><sub><b>notavailablenam</b></sub></a><br /><a href="#ideas-notavailablenam" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/8440847"><img src="https://minesweeper.online/favicon.ico" width="100px" height="100px" alt="Curiosity"/><br /><sub><b>Curiosity</b></sub></a><br /><a href="#ideas-Curiosity" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/24558280"><img src="https://minesweeper.online/favicon.ico" width="100px" height="100px" alt="notavailablenam"/><br /><sub><b>notavailablenam</b></sub></a><br /><a href="#ideas-notavailablenam" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
