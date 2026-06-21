@@ -47,22 +47,10 @@
 
 ## 致谢
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/8440847"><img src="https://minesweeper.online/favicon.ico" width="100px" height="100px" alt="Curiosity"/><br /><sub><b>Curiosity</b></sub></a><br /><a href="#ideas-Curiosity" title="Ideas, Planning, & Feedback">🤔</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/24558280"><img src="https://minesweeper.online/favicon.ico" width="100px" height="100px" alt="notavailablenam"/><br /><sub><b>notavailablenam</b></sub></a><br /><a href="#ideas-notavailablenam" title="Ideas, Planning, & Feedback">🤔</a></td>
-    </tr>
-  </tbody>
-</table>
+特别感谢以下 Minesweeper Online 玩家提供想法与反馈：
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+- [Curiosity](https://minesweeper.online/player/8440847)
+- [notavailablenam](https://minesweeper.online/player/24558280)
 
 ## 许可证
 
