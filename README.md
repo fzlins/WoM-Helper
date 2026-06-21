@@ -47,9 +47,10 @@ Install directly from [Greasy Fork](https://greasyfork.org/scripts/578042-minesw
 
 ## Acknowledgements
 
-| Contributor | Contribution |
-|---|---|
-| [Curiosity](https://minesweeper.online/player/8440847) | [Board difficulty data](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) used by the Quest Advisor |
+Special thanks to these Minesweeper Online players for ideas and feedback:
+
+- [Curiosity](https://minesweeper.online/player/8440847)
+- [notavailablenam](https://minesweeper.online/player/24558280)
 
 ## License
 

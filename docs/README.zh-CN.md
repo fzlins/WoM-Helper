@@ -47,9 +47,10 @@
 
 ## 致谢
 
-| 贡献者 | 贡献内容 |
-|---|---|
-| [Curiosity](https://minesweeper.online/player/8440847) | Quest Advisor 所使用的[棋盘难度数据](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) |
+特别感谢以下 Minesweeper Online 玩家提供想法与反馈：
+
+- [Curiosity](https://minesweeper.online/player/8440847)
+- [notavailablenam](https://minesweeper.online/player/24558280)
 
 ## 许可证
 
