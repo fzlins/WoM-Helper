@@ -1,0 +1,35 @@
+{
+  "projectName": "WoM-Helper",
+  "projectOwner": "fzlins",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md",
+    "docs/README.zh-CN.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "Curiosity",
+      "name": "Curiosity",
+      "avatar_url": "https://minesweeper.online/favicon.ico",
+      "profile": "https://minesweeper.online/player/8440847",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "notavailablenam",
+      "name": "notavailablenam",
+      "avatar_url": "https://minesweeper.online/favicon.ico",
+      "profile": "https://minesweeper.online/player/24558280",
+      "contributions": [
+        "ideas"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true
+}

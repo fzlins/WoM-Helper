@@ -47,9 +47,22 @@ Install directly from [Greasy Fork](https://greasyfork.org/scripts/578042-minesw
 
 ## Acknowledgements
 
-| Contributor | Contribution |
-|---|---|
-| [Curiosity](https://minesweeper.online/player/8440847) | [Board difficulty data](https://docs.google.com/spreadsheets/d/19AGUudLMQ1nuPUmmbl8KUvOw5BLystwqbCOvIIta-9o/edit#gid=379786772) used by the Quest Advisor |
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/8440847"><img src="https://minesweeper.online/favicon.ico" width="100px;" alt="Curiosity"/><br /><sub><b>Curiosity</b></sub></a><br /><a href="#ideas-Curiosity" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://minesweeper.online/player/24558280"><img src="https://minesweeper.online/favicon.ico" width="100px;" alt="notavailablenam"/><br /><sub><b>notavailablenam</b></sub></a><br /><a href="#ideas-notavailablenam" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## License
 
