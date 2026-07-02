@@ -6,7 +6,7 @@ A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) 
 
 ## Settings
 
-On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** section appears at the bottom of the settings panel. Use it to toggle the following features on or off; changes take effect the next time you navigate to that feature's page — no page reload required:
+On the Settings page, a **WoM Helper** section appears at the bottom of the settings panel. Use it to toggle the following features on or off; changes take effect the next time you navigate to that feature's page — no page reload required:
 
 - Board links & mine density
 - Event score projection
@@ -15,19 +15,21 @@ On the [Settings](https://minesweeper.online/settings) page, a **WoM Helper** se
 - Sell max & market price
 - Quest Advisor
 - Player link copy icon
+- Board Generator
 
 ## Features
 
 - **Board links & mine density** — Any `WxH/M` board spec anywhere on the page (e.g. `30x16/99`) is automatically turned into a clickable link that launches that exact game. By default, hovering a link shows the mine density as a tooltip. On the Settings page you can switch to showing the density inline next to each link, or disable the feature entirely.
 
 - **NF (No-Flag) toggle** — A **NF** checkbox appears next to the difficulty selector on game pages (works on both desktop and mobile). When checked, right-clicking on the board is disabled, preventing accidental flag placement — perfect for practicing No-Flag style. The setting is remembered between sessions.
-- **Event stats column** — On the [Events](https://minesweeper.online/events) page, an **Est. Total** column appears in the leaderboard showing each player's projected total points by the end of the event, based on their current pace. Hover any cell to see the daily average.
+- **Event stats column** — On the Events page, an **Est. Total** column appears in the leaderboard showing each player's projected total points by the end of the event, based on their current pace. Hover any cell to see the daily average.
 - **Auto-scroll to my rank** — When the leaderboard loads or your rank changes after a stats update, the page automatically scrolls to your position in the table. Navigating between leaderboard pages does not trigger this.
-- **Auto-find opponent (PvP)** — On the [PvP](https://minesweeper.online/pvp) page, an **Auto** checkbox appears next to the *Find Opponent* button. When checked, the button is pressed automatically whenever it becomes available — on page load, after each match, or after a timeout. Click *Cancel* to stop. The setting is remembered between sessions.
+- **Auto-find opponent (PvP)** — On the PvP page, an **Auto** checkbox appears next to the *Find Opponent* button. When checked, the button is pressed automatically whenever it becomes available — on page load, after each match, or after a timeout. Click *Cancel* to stop. The setting is remembered between sessions.
 - **Collect-all buttons** — On any page where collectable rows are shown in a table, a *Collect All* button is added automatically. The script checks the first column first; if no collect buttons are found there, it checks the last column. If neither column has collect buttons, no *Collect All* button is shown.
-- **Sell max & market price** — On the [Marketplace](https://minesweeper.online/marketplace) page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
-- **Quest Advisor** — On the [Equipment](https://minesweeper.online/equipment) page, a **Quest Advisor** row appears below the equipment heading. Choose a goal type (e.g. MC), enter a target amount, and select how many times you plan to play; the advisor automatically reads your current Minecoin bonus from the equipment stats and shows the recommended board as a clickable link.
-- **Player link copy icon** — Anywhere on the site, if a player-name link matches the profile-link pattern (an `<a>` with an id starting with `player_link_` and a profile URL like `/player/123456` or `/cn/player/123456`), a copy icon appears right after the name. Click it to copy the full absolute profile URL.
+- **Sell max & market price** — On the Marketplace page, the Sell modal gains two helpers per row: a **▲** link next to the quantity field that fills it with the maximum amount you own, and a **🏷** link next to the price field that automatically fetches the current market price via the site's WebSocket. A matching header link lets you fill all rows at once.
+- **Quest Advisor** — On the Equipment page, a **Quest Advisor** row appears below the equipment heading. Choose a goal type (e.g. MC), enter a target amount, and select how many times you plan to play; the advisor automatically reads your current Minecoin bonus from the equipment stats and shows the recommended board as a clickable link.
+- **Player link copy icon** — Anywhere on the site, a copy icon appears right after the name. Click it to copy the full absolute profile URL.
+- **Board Generator** — On the NFT edit page, a **Board Generator** button appears next to the reset control. Click it to locally generate a board from your currently saved digit counts and show the generated layout in place. You can enable or disable this from the Settings page like other features.
 
 ## Installation
 
