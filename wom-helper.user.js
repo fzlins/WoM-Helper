@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.3.1
+// @version      2.3.3
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -34,7 +34,6 @@
     const FEAT_PLAYER_LINK_COPY_KEY = 'ms-feat-player-link-copy';
     const FEAT_BOARD_GENERATOR_KEY = 'ms-feat-board-generator';
     const FEAT_BOARD_GENERATOR_LEGACY_KEY = 'ms-feat-board-calculator';
-    const FEAT_BOARD_GENERATOR_DISCOVERED_KEY = 'ms-feat-board-generator-discovered';
 
     // Named timing constants (avoids magic numbers scattered through the code)
     const AUTO_DUEL_CLICK_DELAY = 400; // ms to wait for #start_duel_btn state to stabilize
@@ -49,10 +48,6 @@
         if (legacyBoardGeneratorSetting !== null) {
             localStorage.setItem(FEAT_BOARD_GENERATOR_KEY, legacyBoardGeneratorSetting);
         }
-    }
-    // Existing explicit preference means the user has already discovered this feature.
-    if (localStorage.getItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY) === null && localStorage.getItem(FEAT_BOARD_GENERATOR_KEY) !== null) {
-        localStorage.setItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY, '1');
     }
 
     /**
@@ -735,6 +730,11 @@
         initNF._done = true;
         let nfEnabled = localStorage.getItem(NF_KEY) === '1';
 
+        function clearNFControls() {
+            document.getElementById('ms-nf-desktop')?.remove();
+            document.getElementById('ms-nf-mobile')?.remove();
+        }
+
         const syncAll = () => {
             document.querySelectorAll('.ms-nf-chk').forEach(c => { c.checked = nfEnabled; });
         };
@@ -747,6 +747,11 @@
         }
 
         function tryInsert() {
+            if (!/\/game(\/|$)/.test(location.pathname)) {
+                clearNFControls();
+                return false;
+            }
+
             const levelsFull = document.getElementById('levels_full');
             if (!levelsFull) return false;
 
@@ -781,10 +786,19 @@
         }
 
         // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
-        onDomChange(tryInsert);
-        onDomChange(() => applyNF(nfEnabled));
+        onDomChange(() => {
+            if (!/\/game(\/|$)/.test(location.pathname)) {
+                clearNFControls();
+                return;
+            }
+            tryInsert();
+        });
+        onDomChange(() => {
+            if (!/\/game(\/|$)/.test(location.pathname)) return;
+            applyNF(nfEnabled);
+        });
         tryInsert();
-        applyNF(nfEnabled);
+        if (/\/game(\/|$)/.test(location.pathname)) applyNF(nfEnabled);
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
@@ -1994,7 +2008,6 @@
             link.className = resetControl?.className || 'btn btn-default';
             link.style.cssText = 'margin-left:6px;';
             for (let i = 1; i <= 8; i++) link.dataset[`count${i}`] = String(payload[i]);
-            localStorage.setItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY, '1');
 
             const resultLabel = document.createElement('label');
             resultLabel.id = RESULT_ID;
@@ -2105,7 +2118,6 @@
                 key: FEAT_BOARD_GENERATOR_KEY,
                 label: t('featBoardGenerator'),
                 desc: t('featBoardGeneratorDesc'),
-                isVisible: () => localStorage.getItem(FEAT_BOARD_GENERATOR_DISCOVERED_KEY) === '1',
             },
         ];
 
