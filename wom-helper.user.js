@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.3.4
+// @version      2.3.5
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -1850,7 +1850,7 @@
             let line = '';
             for (let col = 0; col < width; col++) {
                 const value = digits[row * width + col];
-                line += value === -1 ? '*' : value === 0 ? '.' : String(value);
+                line += value === -1 ? '*' : String(value);
             }
             rows.push(line);
         }
