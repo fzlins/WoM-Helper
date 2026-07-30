@@ -735,6 +735,10 @@
             document.getElementById('ms-nf-mobile')?.remove();
         }
 
+        function isGamePath() {
+            return /\/game(\/|$)/.test(location.pathname);
+        }
+
         const syncAll = () => {
             document.querySelectorAll('.ms-nf-chk').forEach(c => { c.checked = nfEnabled; });
         };
@@ -747,8 +751,9 @@
         }
 
         function tryInsert() {
-            if (!/\/game(\/|$)/.test(location.pathname)) {
+            if (!isGamePath()) {
                 clearNFControls();
+                applyNF(false);
                 return false;
             }
 
@@ -787,18 +792,18 @@
 
         // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
         onDomChange(() => {
-            if (!/\/game(\/|$)/.test(location.pathname)) {
+            if (!isGamePath()) {
                 clearNFControls();
+                applyNF(false);
                 return;
             }
             tryInsert();
         });
         onDomChange(() => {
-            if (!/\/game(\/|$)/.test(location.pathname)) return;
-            applyNF(nfEnabled);
+            applyNF(isGamePath() && nfEnabled);
         });
         tryInsert();
-        if (/\/game(\/|$)/.test(location.pathname)) applyNF(nfEnabled);
+        applyNF(isGamePath() && nfEnabled);
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
