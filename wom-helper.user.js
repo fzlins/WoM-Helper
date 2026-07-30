@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @name         Minesweeper.online Helper
 // @namespace    http://tampermonkey.net/
-// @version      2.3.5
+// @version      2.3.6
 // @description  Converts board-size text (WxH/M) into clickable links with mine density, adds a No-Flag toggle, shows event score projections, auto-clicks the player's rank link, adds an auto-find-opponent toggle on the PvP page, provides one-click shortcuts on the Quests page, adds sell-max and market-price helpers in the Sell modal, shows a Quest Advisor on the Equipment page, adds a copy-link icon after player profile links, and adds a helper settings panel on minesweeper.online
 // @author       fzlins
 // @license      MIT
@@ -735,8 +735,8 @@
             document.getElementById('ms-nf-mobile')?.remove();
         }
 
-        function isGamePath() {
-            return /\/game(\/|$)/.test(location.pathname);
+        function hasNFControl() {
+            return !!document.querySelector('.ms-nf-chk');
         }
 
         const syncAll = () => {
@@ -751,7 +751,7 @@
         }
 
         function tryInsert() {
-            if (!isGamePath()) {
+            if (!/\/game(\/|$)/.test(location.pathname)) {
                 clearNFControls();
                 applyNF(false);
                 return false;
@@ -792,7 +792,7 @@
 
         // Persistent — re-inserts checkbox / re-applies NF on every SPA navigation.
         onDomChange(() => {
-            if (!isGamePath()) {
+            if (!/\/game(\/|$)/.test(location.pathname)) {
                 clearNFControls();
                 applyNF(false);
                 return;
@@ -800,10 +800,10 @@
             tryInsert();
         });
         onDomChange(() => {
-            applyNF(isGamePath() && nfEnabled);
+            applyNF(hasNFControl() && nfEnabled);
         });
         tryInsert();
-        applyNF(isGamePath() && nfEnabled);
+        applyNF(hasNFControl() && nfEnabled);
     }
 
     // ── Event stats ────────────────────────────────────────────────────────
