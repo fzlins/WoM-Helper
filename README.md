@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](./README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./docs/README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on the Quests and Marketplace pages, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, adds a copy icon for player profile links, and lets you toggle each feature from the Settings page.
+A Tampermonkey userscript for [minesweeper.online](https://minesweeper.online/) that enhances board configuration display, adds a No-Flag mode, shows event score projections, includes an auto-find-opponent toggle on the PvP page, provides one-click collect shortcuts on any table with collect actions, adds sell-max and market-price helpers in the Sell modal on the Marketplace page, shows a Quest Advisor on the Equipment page, adds a copy icon for player profile links, generates boards locally from saved counts, and lets you toggle each feature from the Settings page.
 
 ## Settings
 

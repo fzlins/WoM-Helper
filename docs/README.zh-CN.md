@@ -2,7 +2,7 @@
 
 [![English](https://img.shields.io/badge/docs-English-blue)](../README.md) [![简体中文](https://img.shields.io/badge/docs-简体中文-yellow)](./README.zh-CN.md) [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fzlins/WoM-Helper)
 
-适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旼模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任务和市场页面提供一键领取功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐、为玩家个人主页链接添加复制图标，并支持在设置页面单独开关每项功能。
+适用于 [minesweeper.online](https://minesweeper.online/) 的 Tampermonkey 用户脚本，增强棋盘配置显示、添加无旗模式、在活动页面显示活动积分预测、在 PvP 页面提供自动寻找对手功能、在任意可领取表格中提供一键领取功能、在市场出售弹窗中提供最大出售和市场价格辅助、在装备页面提供 Minecoin 最优棋盘推荐、为玩家个人主页链接添加复制图标、可根据保存的数字统计本地生成棋盘，并支持在设置页面单独开关每项功能。
 
 ## 设置
 
